@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GASTRON 5대 가스 실시간 통합 관제 대시보드</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="custom-styles.css" />
+    <style>
+      @font-face {
+        font-family: "SUIT-Regular";
+        src: url("../SUIT-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      body {
+        font-family: "SUIT-Regular", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, sans-serif;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      /* 스크롤바 스타일링 */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+      #sidebar {
+        transition: transform 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+        transform: translateX(0);
+        width: 280px;
+        flex-shrink: 0;
+      }
+      #sidebar.sidebar-closed {
+        transform: translateX(-100%);
+        margin-left: -280px;
+      }
+      .main-content {
+        transition: margin-left 0.3s ease-in-out;
+      }
+      /* Sidebar Item Styles */
+      .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        color: #000000;
+        transition: background-color 0.2s, color 0.2s;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+      .sidebar-item:hover {
+        color: #111827;
+        background-color: #f3f4f6;
+      }
+      .active-sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        background-color: #e5f1ff;
+        color: #0075ff;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+      .widget {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.05),
+          0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        padding: 1.5rem;
+      }
+      .header {
+        border-bottom-color: #e9ecef;
+      }
+      .blueprint-bg {
+        background-color: #f1f3f5;
+        border-color: #dee2e6;
+      }
+      .modal-content {
+        background-color: #ffffff;
+        border-color: #dee2e6;
+      }
+      .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 50;
+      }
+      .text-main {
+        color: #212529;
+      }
+      .text-sub {
+        color: #000000;
+      }
+      .text-light {
+        color: #868e96;
+      }
+      .kpi-bg {
+        background-color: #f8f9fa;
+      }
+      .ai-action-bg {
+        background-color: #f1f3f5;
+      }
+      .report-btn {
+        background-color: #343a40;
+      }
+      .report-btn:hover {
+        background-color: #23272b;
+      }
+
+      /* Dark Theme Overrides */
+      .dark body {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      .dark .widget {
+        background-color: #1e1e1e;
+        border-color: #333;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .dark .header {
+        border-bottom-color: #333;
+      }
+      .dark .blueprint-bg {
+        background-color: #00000020;
+        border-color: #333;
+      }
+      .dark .modal-content {
+        background-color: #212121;
+        border-color: #424242;
+      }
+      .dark .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+      .dark .text-main {
+        color: #ffffff;
+      }
+      .dark .text-sub {
+        color: #e0e0e0;
+      }
+      .dark .text-light {
+        color: #adb5bd;
+      }
+      .dark .kpi-bg {
+        background-color: #0000001a;
+      }
+      .dark .ai-action-bg {
+        background-color: #00000033;
+      }
+      .dark .report-btn {
+        background-color: #495057;
+      }
+      .dark .report-btn:hover {
+        background-color: #343a40;
+      }
+
+      /* Light Theme Styles */
+      html:not(.dark) .text-main {
+        color: #212529;
+      }
+      html:not(.dark) .text-sub {
+        color: #000000;
+      }
+      html:not(.dark) .text-light {
+        color: #868e96;
+      }
+      html:not(.dark) .kpi-bg {
+        background-color: #f8f9fa;
+      }
+      html:not(.dark) .ai-action-bg {
+        background-color: #f1f3f5;
+      }
+      html:not(.dark) .report-btn {
+        background-color: #343a40;
+      }
+      html:not(.dark) .report-btn:hover {
+        background-color: #23272b;
+      }
+
+      .blinking-warning {
+        animation: blink 1.5s linear infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .status-normal {
+        color: #26c6da;
+      }
+      .status-warning {
+        color: #ffa726;
+      }
+      .status-danger {
+        color: #ef5350;
+      }
+      .status-error {
+        color: #bdbdbd;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #212121;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #424242;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #616161;
+      }
+      html:not(.dark) ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      html:not(.dark) ::-webkit-scrollbar-thumb {
+        background: #ced4da;
+      }
+      html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+      }
+
+      .blueprint-zone {
+        position: absolute;
+        border: 1px dashed;
+        border-radius: 0.5rem;
+      }
+      .dark .blueprint-zone {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      html:not(.dark) .blueprint-zone {
+        border-color: rgba(0, 0, 0, 0.2);
+      }
+      .blueprint-zone-title {
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        padding: 0 5px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+      .dark .blueprint-zone-title {
+        background-color: #1e1e1e;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      html:not(.dark) .blueprint-zone-title {
+        background-color: #ffffff;
+        color: #495057;
+      }
+
+      .sensor-dot {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid rgba(0, 0, 0, 0.5);
+      }
+      .sensor-dot:hover {
+        transform: scale(1.8);
+        z-index: 10;
+      }
+
+      .gas-selector-btn {
+        padding: 0.35rem 1rem;
+        border-radius: 9999px;
+        border: 1px solid;
+        transition: all 0.2s ease-in-out;
+      }
+      .dark .gas-selector-btn {
+        border-color: #424242;
+        color: #bdbdbd;
+      }
+      html:not(.dark) .gas-selector-btn {
+        border-color: #ced4da;
+        color: #495057;
+      }
+      .gas-selector-btn.active {
+        font-weight: 600;
+        color: #ffffff;
+        background-color: var(--color-active);
+        border-color: var(--color-active);
+      }
+
+      #report-modal-body {
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+      #report-modal-body h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid;
+      }
+      .dark #report-modal-body h3 {
+        border-color: #424242;
+      }
+      html:not(.dark) #report-modal-body h3 {
+        border-color: #dee2e6;
+      }
+      #report-modal-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      #report-modal-body th,
+      #report-modal-body td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid;
+      }
+      #report-modal-body th {
+        font-weight: 600;
+      }
+      .dark #report-modal-body th,
+      .dark #report-modal-body td {
+        border-color: #333;
+      }
+      html:not(.dark) #report-modal-body th,
+      html:not(.dark) #report-modal-body td {
+        border-color: #dee2e6;
+      }
+      #report-modal-body .tag {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+      }
+      #report-modal-body ul,
+      #report-modal-body ol {
+        padding-left: 1.5rem;
+        margin-top: 1rem;
+      }
+      #report-modal-body li {
+        margin-bottom: 0.5rem;
+      }
+
+      .risk-bar {
+        height: 8px;
+        border-radius: 4px;
+        transition: width 0.5s ease-in-out;
+      }
+
+      /* 인쇄 전용 스타일 */
+      @media print {
+        /* 모든 요소 숨기기 */
+        * {
+          visibility: hidden !important;
+        }
+        
+        /* 보고서 모달과 내용만 표시 */
+        #report-modal,
+        #report-modal *,
+        #report-modal-title,
+        #report-modal-title *,
+        #report-modal-body,
+        #report-modal-body * {
+          visibility: visible !important;
+        }
+        
+        /* 모달 배경 및 불필요한 요소 숨기기 */
+        #report-modal .modal-overlay {
+          background: none !important;
+          position: static !important;
+        }
+        
+        #report-modal .modal-content {
+          position: static !important;
+          box-shadow: none !important;
+          border-radius: 0 !important;
+          max-width: none !important;
+          width: 100% !important;
+          height: auto !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        
+        /* 헤더의 닫기 버튼과 다운로드 버튼 숨기기 */
+        #close-report-modal-btn,
+        #report-download-btn,
+        .header .flex.justify-end {
+          display: none !important;
+        }
+        
+        /* 제목 스타일 */
+        #report-modal-title {
+          font-size: 24px !important;
+          font-weight: bold !important;
+          color: #000 !important;
+          margin-bottom: 20px !important;
+          text-align: center !important;
+        }
+        
+        /* 본문 내용 스타일 */
+        #report-modal-body {
+          color: #333 !important;
+          line-height: 1.6 !important;
+          font-size: 14px !important;
+          padding: 0 !important;
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+        
+        #report-modal-body h3 {
+          color: #000 !important;
+          font-size: 18px !important;
+          font-weight: bold !important;
+          margin: 20px 0 10px 0 !important;
+          page-break-after: avoid !important;
+        }
+        
+        #report-modal-body table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          margin: 15px 0 !important;
+          page-break-inside: avoid !important;
+        }
+        
+        #report-modal-body th,
+        #report-modal-body td {
+          border: 1px solid #333 !important;
+          padding: 8px !important;
+          text-align: left !important;
+          font-size: 12px !important;
+        }
+        
+        #report-modal-body th {
+          background-color: #f0f0f0 !important;
+          font-weight: bold !important;
+        }
+        
+        #report-modal-body .tag {
+          display: inline-block !important;
+          padding: 2px 6px !important;
+          border: 1px solid #333 !important;
+          border-radius: 8px !important;
+          font-size: 10px !important;
+          margin: 2px !important;
+          background-color: #f8f8f8 !important;
+        }
+        
+        #report-modal-body ul,
+        #report-modal-body ol {
+          margin: 10px 0 !important;
+          padding-left: 20px !important;
+        }
+        
+        #report-modal-body li {
+          margin: 5px 0 !important;
+          line-height: 1.4 !important;
+        }
+        
+        /* 페이지 설정 */
+        @page {
+          margin: 20mm !important;
+          size: A4 !important;
+        }
+        
+        /* 페이지 나누기 */
+        .page-break {
+          page-break-before: always !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-[#f8f8f8]">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b shadow-2 z-50">
+      <div
+        class="max-h-16 overflow-hidden ease flex w-full flex-col justify-start px-5 transition-[max-height] duration-150 sm:flex-row sm:items-center sm:justify-between sm:overflow-visible sm:border-none"
+      >
+        <div class="my-auto flex min-h-16 items-center gap-3 sm:gap-4">
+          <button
+            id="sidebar-toggle-btn"
+            aria-controls="sidebar"
+            class="stroke-gray-600"
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="aspect-square w-6 shrink-0"
+            >
+              <path
+                id="sidebar-toggle-icon-close"
+                d="M20 24L12 16L20 8"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                id="sidebar-toggle-icon-open"
+                d="M6 8H26M6 16H26M6 24H26"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="hidden"
+              ></path>
+            </svg>
+          </button>
+          <a class="block" href="../index.html">
+            <img
+              src="../assets/logo-nav.png"
+              alt="Logo"
+              class="max-h-16 w-auto"
+            />
+          </a>
+          <div
+            class="hidden line-clamp-1 w-fit whitespace-nowrap text-2xl font-bold text-gray-800"
+          >
+            GASTRON 5대 가스 실시간 통합 관제 대시보드
+          </div>
+        </div>
+        <ul
+          class="relative z-50 my-auto flex min-h-16 w-full justify-center gap-2 sm:border-none"
+        >
+          <div
+            class="flex flex-1 items-center gap-3 whitespace-nowrap text-base text-gray-700 max-sm:flex-wrap"
+          >
+            <nav
+              aria-label="Main"
+              data-orientation="horizontal"
+              dir="ltr"
+              class="relative z-10 flex flex-1 items-center w-full max-w-full justify-evenly sm:justify-end"
+            >
+              <div style="position: relative gap-y-1">
+                <ul
+                  data-orientation="horizontal"
+                  class="group flex flex-1 list-none items-center justify-center space-x-1"
+                  dir="ltr"
+                >
+                  <li class="flex flex-1 justify-center">
+                    <button
+                      class="group inline-flex items-center justify-center rounded-md py-2 transition-colors hover:bg-transparent hover:text-accent-foreground focus:bg-transparent focus:text-accent-foreground focus:outline-none disabled:opacity-50 data-[active]:bg-transparent date-[active]:text-primary data-[state=open]:bg-transparent group group h-13 w-full px-0 text-lg font-bold disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-gray-500"
+                    >
+                      <div>
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-6 w-6 group-data-[state=open]:text-primary"
+                        >
+                          <path
+                            d="M7 21L3 17L7 13"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M17 17H3"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M17 3L21 7L17 11"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M7 7H21"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                        </svg>
+                      </div>
+                    </button>
+                  </li>
+                  <li>
+                    <div
+                      class="mx-2 my-auto h-3 w-px shrink-0 bg-graysclae-600"
+                    ></div>
+                  </li>
+                  <li class="flex flex-1 justify-center">
+                    <button
+                      class="group inline-flex items-center justify-center rounded-md py-2 font-medium transition-colors hover:bg-transparent hover:text-accent-foreground focus:bg-transparent focus:text-accent-foreground focus:outline-none disabled:opacity-50 data-[active]:bg-transparent date-[active]:text-primary data-[state=open]:bg-transparent group group h-13 w-full bg-white px-0 text-lg disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-gray-500"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-6 w-6 group-data-[state=open]:text-primary"
+                        >
+                          <path
+                            d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                        </svg>
+                        <div
+                          class="my-auto hidden text-grayscale-300 group-data-[state=open]:text-primary sm:flex no-layout-shift"
+                          data-text="관제 매니저"
+                        >
+                          관제 매니저
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <div
+                class="absolute left-auto top-full flex justify-center right-auto sm:-right-4 lg:-right-5"
+              ></div>
+            </nav>
+          </div>
+          </div>
+        </ul>
+      </div>
+    </header>
+
+    <div class="flex h-screen pt-16">
+      <!-- New Sidebar -->
+      <aside
+        id="sidebar"
+        class="z-40 bg-white shadow-lg rounded-2xl ml-5 my-5 border border-solid border-grayscale-700"
+      >
+        <div class="no-scrollbar flex flex-col h-full overflow-y-auto">
+          <nav id="lnb" class="p-4 text-lg font-medium">
+            <ul class="flex flex-col gap-1.5 mt-[1px]">
+              <li class="py-[2px]">
+                <div
+                  id="nav-dashboard"
+                  data-page-id="dashboard"
+                  title="대시보드"
+                  class="active-sidebar-item"
+                >
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
+                    ></path>
+                    <path
+                      d="M9 22V14H15V22"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]"
+                    >대시보드</span
+                  >
+                </div>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- 메인 컨텐츠 영역 -->
+      <div class="flex-1 flex flex-col overflow-hidden main-content">
+        <main class="flex-1 p-6 overflow-y-auto">
+          <!-- 페이지 컨테이너 -->
+          <div id="page-content">
+            <!-- 대시보드 페이지 -->
+            <div id="dashboard-page" class="">
+              <!-- Page Title -->
+              <div class="mb-6 flex items-start justify-between">
+                <div>
+                  <h2 class="text-[30px] font-bold text-gray-800">
+                    GASTRON 5대 가스 실시간 통합 관제 대시보드
+                  </h2>
+                  <p class="text-sm text-gray-500">
+                    AI 기반 자동 위험 감지 시스템으로 5대 가스를 실시간 모니터링합니다.
+                  </p>
+                </div>
+                <!-- 보고서 생성 버튼 -->
+                <div class="relative">
+                  <button
+                    id="open-report-menu-btn"
+                    class="report-btn flex items-center gap-2 rounded-lg px-4 py-2 font-bold text-white transition-colors"
+                  >
+                    <i data-lucide="file-text" class="h-4 w-4"></i> 보고서 생성
+                  </button>
+                  <div
+                    id="report-menu"
+                    class="absolute right-0 z-20 mt-2 hidden w-48 rounded-md bg-white py-1 shadow-lg border"
+                  >
+                    <a href="#" class="report-menu-item" data-report-type="일간"
+                      >일간 보고서</a
+                    >
+                    <a href="#" class="report-menu-item" data-report-type="주간"
+                      >주간 보고서</a
+                    >
+                    <a href="#" class="report-menu-item" data-report-type="월간"
+                      >월간 보고서</a
+                    >
+                  </div>
+                </div>
+              </div>
+              <!-- 보고서 메뉴 스타일 -->
+              <style>
+                .report-menu-item {
+                  display: block;
+                  padding: 0.5rem 1rem;
+                  font-size: 0.875rem;
+                  color: #495057;
+                  text-decoration: none;
+                }
+                .report-menu-item:hover {
+                  background-color: #f1f3f5;
+                }
+                .dark .report-menu-item {
+                  color: #e0e0e0;
+                }
+                .dark .report-menu-item:hover {
+                  background-color: #343a40;
+                }
+              </style>
+              <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+      <div class="widget lg:col-span-8">
+        <div class="grid h-full grid-cols-2 gap-5 sm:grid-cols-4">
+          <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+            <div class="rounded-full bg-blue-500/10 p-3">
+              <i data-lucide="server" class="h-6 w-6"></i>
+            </div>
+            <div>
+              <p class="text-light text-sm">총 센서</p>
+              <p id="total-sensors" class="text-sub text-2xl font-bold">0</p>
+            </div>
+          </div>
+          <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+            <div class="rounded-full bg-green-500/10 p-3">
+              <i data-lucide="check-circle" class="h-6 w-6"></i>
+            </div>
+            <div>
+              <p class="text-light text-sm">정상</p>
+              <p id="normal-sensors" class="text-sub text-2xl font-bold">0</p>
+            </div>
+          </div>
+          <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+            <div class="rounded-full bg-orange-500/10 p-3">
+              <i
+                data-lucide="alert-triangle"
+                class="h-6 w-6"
+              ></i>
+            </div>
+            <div>
+              <p class="text-light text-sm">경보</p>
+              <p id="warning-sensors" class="text-sub text-2xl font-bold">0</p>
+            </div>
+          </div>
+          <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+            <div class="rounded-full bg-red-500/10 p-3">
+              <i data-lucide="x-circle" class="h-6 w-6"></i>
+            </div>
+            <div>
+              <p class="text-light text-sm">오류/위험</p>
+              <p id="error-sensors" class="text-sub text-2xl font-bold">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="widget lg:col-span-4" id="risk-score-widget">
+        <h2 class="text-sub mb-6 w-full text-center text-lg font-semibold">
+          시설 종합 위험도
+        </h2>
+        <div class="flex w-full flex-grow items-center justify-center">
+          <canvas id="risk-score-gauge"></canvas>
+        </div>
+      </div>
+
+      <div class="widget h-[420px] lg:col-span-7">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="map"></i> 센서 배치 및 상태
+        </h2>
+        <div
+          id="blueprint-container"
+          class="blueprint-bg relative flex-grow overflow-hidden rounded-lg p-2"
+        ></div>
+      </div>
+      <div class="widget h-[420px] lg:col-span-5">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="brain"></i> AI 에이전트
+        </h2>
+        <div
+          id="ai-feed"
+          class="flex-grow space-y-4 overflow-y-auto pr-2 flex items-center justify-center"
+        >
+          <p class="text-light text-center flex flex-col items-center gap-2">
+            <i data-lucide="brain" class="w-12 h-12 text-cyan-400"></i>
+            AI 에이전트가 시스템을 분석 중입니다...
+          </p>
+        </div>
+      </div>
+
+      <div class="widget h-[380px] lg:col-span-6">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="radio-tower"></i> 주요 센서
+          모니터링
+        </h2>
+        <div
+          id="key-sensors-list"
+          class="flex-grow space-y-3 overflow-y-auto pr-2"
+        ></div>
+      </div>
+      <div class="widget h-[380px] lg:col-span-6">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="siren"></i> 경보 발생 현황
+        </h2>
+        <div id="alarm-list" class="flex-grow space-y-2 overflow-y-auto pr-2 flex items-center justify-center">
+          <p class="text-light text-center flex flex-col items-center gap-2">
+            <i data-lucide="shield-check" class="w-12 h-12 text-cyan-400"></i>
+            현재 경보 발생 내역이 없습니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="widget h-[380px] lg:col-span-4" id="alarm-history-widget">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="bar-chart-3"></i> 경보 발생
+          이력 (최근 7일)
+        </h2>
+        <div class="flex-grow"><canvas id="alarm-history-chart"></canvas></div>
+      </div>
+      <div class="widget h-[380px] lg:col-span-4" id="sensor-status-widget">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="pie-chart"></i> 센서 상태 분포
+        </h2>
+        <div class="flex flex-grow items-center justify-center">
+          <canvas id="sensor-status-chart"></canvas>
+        </div>
+      </div>
+      <div class="widget h-[380px] lg:col-span-4">
+        <h2 class="text-sub mb-6 flex items-center gap-2 text-lg font-semibold">
+          <i data-lucide="list-checks"></i> 가스별 위험도
+          분석
+        </h2>
+        <div
+          id="gas-risk-analysis"
+          class="flex-grow space-y-4 overflow-y-auto pr-2"
+        ></div>
+      </div>
+
+      <div class="widget h-[420px] lg:col-span-12" id="main-chart-widget">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <h2
+            id="main-chart-title"
+            class="text-sub flex items-center gap-2 text-lg font-semibold"
+          ></h2>
+          <div
+            id="gas-selector"
+            class="flex flex-wrap items-center gap-2 text-sm"
+          ></div>
+          <div
+            id="live-concentration"
+            class="font-mono text-3xl font-bold"
+          ></div>
+        </div>
+        <div class="flex-grow pb-4"><canvas id="gas-chart"></canvas></div>
+      </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div
+      id="sensor-modal"
+      class="modal-overlay fixed inset-0 flex hidden items-center justify-center bg-black/60"
+    >
+      <div class="modal-content w-full max-w-4xl">
+        <div class="mb-6 flex items-center justify-between">
+          <div>
+            <h3
+              id="modal-sensor-location"
+              class="text-main text-2xl font-bold"
+            ></h3>
+            <p id="modal-sensor-status" class="text-sm"></p>
+          </div>
+          <button
+            id="close-sensor-modal-btn"
+            class="text-light hover:text-main text-4xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div
+          id="modal-gas-details"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
+        ></div>
+      </div>
+    </div>
+    <div
+      id="report-modal"
+      class="modal-overlay fixed inset-0 flex hidden items-center justify-center bg-black/60 p-6"
+    >
+      <div class="modal-content p-6 rounded-xl shadow-2xl" style="max-width: calc(4rem*16 + 40px)">
+        <div class="header mb-4 flex items-center justify-between pb-4">
+          <h3 id="report-modal-title" class="text-main text-2xl font-bold"></h3>
+          <button
+            id="close-report-modal-btn"
+            class="text-light hover:text-main text-4xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="flex flex-grow flex-col">
+          <div
+            id="report-modal-body"
+            class="text-sub h-[70vh] max-w-none overflow-y-auto pr-4 p-4 rounded-lg"
+          ></div>
+          <div class="header mt-4 flex justify-end border-t pt-4">
+            <button
+              id="report-download-btn"
+              class="report-btn rounded-lg px-4 py-2 font-bold text-white transition-colors"
+            >
+              다운로드
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+      const TOTAL_SENSORS = 50;
+      const CHART_DATA_POINTS = 30;
+      const GASES = {
+        o2: {
+          name: '산소',
+          unit: '%',
+          color: '#26C6DA',
+          normal: 20.9,
+          warn_low: 19.5,
+          danger_low: 18.0,
+          action_warn:
+            '산소 농도 저하. 해당 구역 작업자 확인 및 환기 상태 점검.',
+          action_danger: '산소 결핍 위험! 작업자 즉시 대피 및 구역 폐쇄.',
+        },
+        co: {
+          name: '일산화탄소',
+          unit: 'ppm',
+          color: '#FFA726',
+          normal: 10,
+          warn_high: 30,
+          danger_high: 100,
+          action_warn: 'CO 누출 의심. 즉시 환기 및 누출원 점검 필요.',
+          action_danger: 'CO 중독 위험! 즉시 대피 및 방독면 착용 후 진입.',
+        },
+        h2s: {
+          name: '황화수소',
+          unit: 'ppm',
+          color: '#EC407A',
+          normal: 1,
+          warn_high: 10,
+          danger_high: 20,
+          action_warn: 'H₂S 누출 의심. 즉시 환기 및 휴대용 감지기로 재확인.',
+          action_danger: 'H₂S 중독 위험! 즉시 대피 및 관계자 외 출입 금지.',
+        },
+        lel: {
+          name: '가연성가스',
+          unit: '%LEL',
+          color: '#EF5350',
+          normal: 0,
+          warn_high: 10,
+          danger_high: 25,
+          action_warn: '폭발 위험성 증가. 화기 작업 금지 및 누출원 확인.',
+          action_danger: '폭발 위험! 즉시 대피 및 스파크 발생원 차단.',
+        },
+        co2: {
+          name: '이산화탄소',
+          unit: 'ppm',
+          color: '#42A5F5',
+          normal: 400,
+          warn_high: 1000,
+          danger_high: 5000,
+          action_warn: '환기 불량 의심. 실내 공기질 점검 및 환기 시스템 가동.',
+          action_danger: '질식 위험! 작업자 대피 및 환기량 최대로 확보.',
+        },
+      };
+      let sensors = [],
+        mainChart,
+        riskScoreGauge,
+        alarmHistoryChart,
+        sensorStatusChart,
+        activeMainChartGas = 'lel',
+        activeModalSensorId = null;
+      let detailCharts = {};
+
+      const elements = {
+        openReportMenuBtn: document.getElementById('open-report-menu-btn'),
+        reportMenu: document.getElementById('report-menu'),
+        totalSensors: document.getElementById('total-sensors'),
+        normalSensors: document.getElementById('normal-sensors'),
+        warningSensors: document.getElementById('warning-sensors'),
+        errorSensors: document.getElementById('error-sensors'),
+        aiFeed: document.getElementById('ai-feed'),
+        alarmList: document.getElementById('alarm-list'),
+        riskScoreGauge: document.getElementById('risk-score-gauge'),
+        gasRiskAnalysis: document.getElementById('gas-risk-analysis'),
+        keySensorsList: document.getElementById('key-sensors-list'),
+        alarmHistoryChart: document.getElementById('alarm-history-chart'),
+        sensorStatusChart: document.getElementById('sensor-status-chart'),
+        mainChartTitle: document.getElementById('main-chart-title'),
+        gasSelector: document.getElementById('gas-selector'),
+        liveConcentration: document.getElementById('live-concentration'),
+        blueprintContainer: document.getElementById('blueprint-container'),
+        reportModal: document.getElementById('report-modal'),
+        reportModalTitle: document.getElementById('report-modal-title'),
+        reportModalBody: document.getElementById('report-modal-body'),
+        closeReportModalBtn: document.getElementById('close-report-modal-btn'),
+        reportDownloadBtn: document.getElementById('report-download-btn'),
+        sensorModal: document.getElementById('sensor-modal'),
+        closeSensorModalBtn: document.getElementById('close-sensor-modal-btn'),
+        modalSensorLocation: document.getElementById('modal-sensor-location'),
+        modalSensorStatus: document.getElementById('modal-sensor-status'),
+        modalGasDetails: document.getElementById('modal-gas-details'),
+      };
+
+      function initializeBlueprint() {
+        const e = [
+            { n: '1공장', t: '3%', l: '2%', w: '46%', h: '45%' },
+            { n: '2공장', t: '3%', l: '52%', w: '46%', h: '45%' },
+            { n: '3공장', t: '52%', l: '2%', w: '30%', h: '45%' },
+            { n: '4공장', t: '52%', l: '36%', w: '30%', h: '45%' },
+            { n: '사무동', t: '52%', l: '70%', w: '28%', h: '45%' },
+          ],
+          o = elements.blueprintContainer;
+        (o.innerHTML = ''),
+          e.forEach((e) => {
+            const t = document.createElement('div');
+            (t.className = 'blueprint-zone'),
+              Object.assign(t.style, {
+                top: e.t,
+                left: e.l,
+                width: e.w,
+                height: e.h,
+              });
+            const a = document.createElement('div');
+            (a.className = 'blueprint-zone-title'),
+              (a.textContent = e.n),
+              t.appendChild(a),
+              o.appendChild(t);
+          });
+        const t = document.createElement('div');
+        (t.id = 'sensor-dots-container'), o.appendChild(t);
+      }
+      function initializeSensors() {
+        for (let e = 0; e < TOTAL_SENSORS; e++) {
+          const o = Math.ceil((e + 1) / (TOTAL_SENSORS / 5));
+          let t, a;
+          1 === o
+            ? ((t = 4 + 42 * Math.random()), (a = 8 + 35 * Math.random()))
+            : 2 === o
+              ? ((t = 54 + 42 * Math.random()), (a = 8 + 35 * Math.random()))
+              : 3 === o
+                ? ((t = 4 + 26 * Math.random()), (a = 57 + 35 * Math.random()))
+                : 4 === o
+                  ? ((t = 38 + 26 * Math.random()),
+                    (a = 57 + 35 * Math.random()))
+                  : ((t = 72 + 24 * Math.random()),
+                    (a = 57 + 35 * Math.random()));
+          const s = `gastron-2024-${String(e).padStart(4, '0')}`;
+          sensors.push({
+            id: s,
+            location: `${o}공장 ${String.fromCharCode(65 + (e % 5))}라인-${String((e % 10) + 1).padStart(2, '0')}`,
+            gas_concentrations: {
+              o2: 20.9 - 0.1 * Math.random(),
+              co: 5 * Math.random(),
+              h2s: 0.5 * Math.random(),
+              lel: 2 * Math.random(),
+              co2: 400 + 50 * Math.random(),
+            },
+            history: {},
+            sensor_status: '정상',
+            overall_alarm_status: '정상',
+            alarm_details: {},
+            x: t,
+            y: a,
+          });
+        }
+        (sensors[0].location = '3공장 A라인-01'),
+          (sensors[10].special = 'frequent_spikes'),
+          (sensors[25].special = 'error_candidate');
+      }
+      function simulateDataUpdate() {
+        sensors.forEach((e) => {
+          if ('error_candidate' === e.special && Math.random() < 0.005)
+            e.sensor_status = '오류';
+          else if ('오류' !== e.sensor_status)
+            for (const o in GASES) {
+              let t = e.gas_concentrations[o],
+                a = (Math.random() - 0.5) * 0.02 * GASES[o].normal;
+              'frequent_spikes' === e.special &&
+              'co' === o &&
+              t < GASES.co.warn_high
+                ? (a = 0.5 + Math.random())
+                : Math.random() < 0.002 &&
+                  o === Object.keys(GASES)[Math.floor(4 * Math.random()) + 1] &&
+                  (a +=
+                    (GASES[o].danger_high || GASES[o].normal) * Math.random()),
+                (t += a),
+                (e.gas_concentrations[o] = Math.max(0, t)),
+                e.history[o] || (e.history[o] = []),
+                e.history[o].push(t),
+                e.history[o].length > CHART_DATA_POINTS && e.history[o].shift();
+            }
+        }),
+          runAIAgent(),
+          updateUI();
+      }
+      function runAIAgent() {
+        sensors.forEach((e) => {
+          let o = '정상',
+            t = {},
+            a = 0;
+          if ('오류' === e.sensor_status) (a = 3), (o = '오류');
+          else
+            for (const s in GASES) {
+              const n = GASES[s],
+                i = e.gas_concentrations[s];
+              let r = '정상';
+              n.danger_low && i < n.danger_low
+                ? ((r = '2차 경보'), (a = Math.max(a, 2)))
+                : n.warn_low && i < n.warn_low
+                  ? ((r = '1차 경보'), (a = Math.max(a, 1)))
+                  : n.danger_high && i > n.danger_high
+                    ? ((r = '2차 경보'), (a = Math.max(a, 2)))
+                    : n.warn_high &&
+                      i > n.warn_high &&
+                      ((r = '1차 경보'), (a = Math.max(a, 1))),
+                '정상' !== r && (t[s] = r);
+            }
+          2 === a ? (o = '2차 경보') : 1 === a && (o = '1차 경보'),
+            '오류' === e.sensor_status && (o = '오류'),
+            JSON.stringify(e.alarm_details) !== JSON.stringify(t) &&
+              Object.keys(t).forEach((a) => {
+                if (!e.alarm_details[a] || e.alarm_details[a] !== t[a]) {
+                  const s = t[a].includes('2차') ? 'danger' : 'warning';
+                  addAIFeed(
+                    `${GASES[a].name} ${t[a]}`,
+                    e.location,
+                    GASES[a],
+                    s
+                  );
+                }
+              }),
+            (e.overall_alarm_status = o),
+            (e.alarm_details = t);
+        });
+      }
+      function updateUI() {
+        updateKPIs(),
+          updateAlarmList(),
+          updateMainChart(),
+          updateBlueprint(),
+          // updateTime(), // 제거됨
+          updateRiskScore(),
+          updateKeySensors(),
+          updateGasRiskAnalysis(),
+          updateSensorStatusDistribution(),
+          activeModalSensorId && updateSensorModal();
+      }
+      function updateKPIs() {
+        let e = 0,
+          o = 0,
+          t = 0;
+        sensors.forEach((s) => {
+          '오류' === s.overall_alarm_status ||
+          '2차 경보' === s.overall_alarm_status
+            ? t++
+            : '1차 경보' === s.overall_alarm_status
+              ? o++
+              : e++;
+        }),
+          (elements.totalSensors.textContent = TOTAL_SENSORS),
+          (elements.normalSensors.textContent = e),
+          (elements.warningSensors.textContent = o),
+          (elements.errorSensors.textContent = t);
+      }
+      function updateAlarmList() {
+        const e = sensors.filter(
+          (e) =>
+            '정상' !== e.overall_alarm_status &&
+            '오류' !== e.overall_alarm_status
+        );
+        0 === e.length
+          ? (elements.alarmList.innerHTML =
+              '<p class="text-light text-center flex flex-col items-center gap-2"><i data-lucide="shield-check" class="w-12 h-12 text-cyan-400"></i>현재 경보 발생 내역이 없습니다.</p>')
+          : (elements.alarmList.classList.remove('flex', 'items-center', 'justify-center'),
+             elements.alarmList.innerHTML = e
+              .map((e) => {
+                const o = Object.keys(e.alarm_details)[0] || '';
+                return `<div class="p-3 rounded-lg flex justify-between items-center ${e.overall_alarm_status.includes('2차') ? 'bg-red-500/10' : 'bg-orange-500/10'}"><div><p class="font-bold text-sub">${e.location}</p><p class="text-sm ${e.overall_alarm_status.includes('2차') ? 'status-danger' : 'status-warning'}">${o ? GASES[o].name : ''} ${e.overall_alarm_status}</p></div><div class="font-semibold text-lg text-sub font-mono">${o ? e.gas_concentrations[o].toFixed(1) : '-'} ${o ? GASES[o].unit : ''}</div></div>`;
+              })
+              .join('')),
+          lucide.createIcons();
+      }
+      function addAIFeed(e, o, t, s) {
+        const n = new Date().toLocaleTimeString('ko-KR', { hour12: !1 }),
+          a = 'danger' === s ? t.action_danger : t.action_warn;
+        let l,
+          r,
+          i = 'arrow-right-circle';
+        switch (s) {
+          case 'danger':
+            (l = 'siren'), (r = 'status-danger');
+            break;
+          case 'warning':
+            (l = 'alert-triangle'), (r = 'status-warning');
+            break;
+          default:
+            (l = 'check-circle-2'), (r = 'status-normal');
+        }
+        // 첫 번째 항목이 추가될 때 초기 메시지 제거 및 레이아웃 변경
+        const initialMessage = elements.aiFeed.querySelector('.text-light.text-center');
+        if (initialMessage) {
+          elements.aiFeed.removeChild(initialMessage);
+          // 중앙 정렬에서 일반 레이아웃으로 변경
+          elements.aiFeed.classList.remove('flex', 'items-center', 'justify-center');
+        }
+        
+        const c = `\n        <div class="border-l-4 ${'danger' === s ? 'border-red-500' : 'border-orange-500'} pl-4 py-2"><div class="flex items-start gap-3"><i data-lucide="${l}" class="w-5 h-5 mt-1 ${r} flex-shrink-0"></i><div class="flex-1"><p class="font-bold text-sub">[${e}] <span class="font-medium text-light">${o}</span></p><p class="text-xs text-light font-mono mb-2">${n}</p><div class="flex items-start gap-2 text-sm ai-action-bg p-2 rounded-md"><i data-lucide="${i}" class="w-4 h-4 mt-0.5 text-cyan-400 flex-shrink-0"></i><p class="text-sub"><b>권장 조치:</b> ${a}</p></div></div></div></div>`;
+        elements.aiFeed.children.length > 20 &&
+          elements.aiFeed.removeChild(elements.aiFeed.lastChild),
+          elements.aiFeed.insertAdjacentHTML('afterbegin', c),
+          lucide.createIcons();
+      }
+      function updateBlueprint() {
+        const container = document.getElementById('sensor-dots-container');
+        if (container) {
+          container.innerHTML = '';
+          for (const sensor of sensors) {
+            let colorClass = 'bg-green-500',
+              animationClass = '';
+            '1차 경보' === sensor.overall_alarm_status
+              ? ((colorClass = 'bg-orange-500'),
+                (animationClass = 'blinking-warning'))
+              : '2차 경보' === sensor.overall_alarm_status
+                ? ((colorClass = 'bg-red-500'),
+                  (animationClass = 'blinking-warning'))
+                : '오류' === sensor.sensor_status &&
+                  (colorClass = 'bg-gray-600');
+            const dot = document.createElement('div');
+            (dot.className = `sensor-dot ${colorClass} ${animationClass}`),
+              (dot.style.left = `${sensor.x}%`),
+              (dot.style.top = `${sensor.y}%`),
+              (dot.dataset.sensorId = sensor.id),
+              (dot.title = `${sensor.location} (${sensor.overall_alarm_status})`),
+              container.appendChild(dot);
+          }
+        }
+      }
+      function updateTime() {
+        // 현재시간 표시 제거됨
+      }
+      function updateRiskScore() {
+        let e = 0;
+        sensors.forEach((s) => {
+          '2차 경보' === s.overall_alarm_status
+            ? (e += 10)
+            : '1차 경보' === s.overall_alarm_status
+              ? (e += 3)
+              : '오류' === s.sensor_status && (e += 5);
+        });
+        const o = Math.min(100, (100 * e) / (3 * TOTAL_SENSORS));
+        if (riskScoreGauge) {
+          let e = '#26C6DA';
+          o > 50 ? (e = '#EF5350') : o > 20 && (e = '#FFA726'),
+            (riskScoreGauge.data.datasets[0].data[0] = o),
+            (riskScoreGauge.data.datasets[0].data[1] = 100 - o),
+            (riskScoreGauge.data.datasets[0].backgroundColor[0] = e),
+            (riskScoreGauge.options.plugins.doughnutlabel.labels[0].color = e),
+            (riskScoreGauge.options.plugins.doughnutlabel.labels[0].text = `${Math.round(o)}%`);
+          const s = document.documentElement.classList.contains('dark');
+          (riskScoreGauge.options.plugins.doughnutlabel.labels[1].color = s
+            ? '#9CA3AF'
+            : '#495057'),
+            (riskScoreGauge.data.datasets[0].backgroundColor[1] = s
+              ? '#374151'
+              : '#e9ecef'),
+            riskScoreGauge.update('none');
+        }
+      }
+      function updateKeySensors() {
+        const e = (e) =>
+            '2차 경보' === e.overall_alarm_status
+              ? 3
+              : '오류' === e.sensor_status
+                ? 2
+                : '1차 경보' === e.overall_alarm_status
+                  ? 1
+                  : 0,
+          o = [...sensors].sort((o, t) => e(t) - e(o)).slice(0, 4);
+        elements.keySensorsList.innerHTML = o
+          .map((o) => {
+            let t = `<span class="font-semibold status-normal">정상</span>`;
+            return (
+              e(o) > 0 &&
+                (t = `<span class="font-semibold ${e(o) > 1 ? 'status-danger' : 'status-warning'}">${o.overall_alarm_status}</span>`),
+              `\n                <div class="kpi-bg p-3 rounded-lg">\n                    <div class="flex justify-between items-center mb-2">\n                        <p class="font-bold text-sub">${o.location}</p>\n                        ${t}\n                    </div>\n                    <div class="grid grid-cols-3 gap-x-2 gap-y-1 text-xs">\n                        ${Object.keys(
+                GASES
+              )
+                .map((e) => {
+                  const t = GASES[e],
+                    s = o.gas_concentrations[e];
+                  let a = 'text-light';
+                  return (
+                    ((t.warn_low && s < t.warn_low) ||
+                      (t.warn_high && s > t.warn_high)) &&
+                      (a = 'status-warning'),
+                    ((t.danger_low && s < t.danger_low) ||
+                      (t.danger_high && s > t.danger_high)) &&
+                      (a = 'status-danger'),
+                    `<div class="flex justify-between items-center"><span class="text-light">${t.name}</span> <strong class="${a}">${s.toFixed(1)}</strong></div>`
+                  );
+                })
+                .join(
+                  ''
+                )}\n                    </div>\n                </div>\n            `
+            );
+          })
+          .join('');
+      }
+      function updateGasRiskAnalysis() {
+        const e = Object.keys(GASES).reduce((e, s) => ({ ...e, [s]: 0 }), {});
+        sensors.forEach((s) => {
+          Object.keys(s.alarm_details).forEach((o) => {
+            e[o]++;
+          });
+        }),
+          (elements.gasRiskAnalysis.innerHTML = Object.keys(GASES)
+            .map((s) => {
+              const o = GASES[s],
+                t = e[s],
+                a = (100 * t) / (TOTAL_SENSORS / 2);
+              return `\n                <div>\n                    <div class="flex justify-between items-center mb-1 text-sm">\n                        <span class="font-medium text-sub">${o.name}</span>\n                        <span class="font-mono text-light">${t} 건</span>\n                    </div>\n                    <div class="w-full kpi-bg rounded-full h-2">\n                        <div class="risk-bar rounded-full" style="width: ${a}%; background-color: ${o.color};"></div>\n                    </div>\n                </div>\n            `;
+            })
+            .join(''));
+      }
+      function createChart(t, o, a, e = !1) {
+        e &&
+          ((e = t.createLinearGradient(0, 0, 0, 300)),
+          e.addColorStop(0, `${o.borderColor}60`),
+          e.addColorStop(1, `${o.borderColor}00`),
+          (o.backgroundColor = e));
+        const s = document.documentElement.classList.contains('dark');
+        return new Chart(t, {
+          type: 'line',
+          data: { labels: Array(CHART_DATA_POINTS).fill(''), datasets: [o] },
+          options: {
+            responsive: !0,
+            maintainAspectRatio: !1,
+            plugins: { legend: { display: !1 }, tooltip: { enabled: !1 } },
+            scales: {
+              y: {
+                beginAtZero: !0,
+                max: a,
+                grid: {
+                  color: s
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.05)',
+                },
+                ticks: {
+                  color: s ? '#9CA3AF' : '#495057',
+                  font: { family: 'monospace' },
+                },
+              },
+              x: { display: !1 },
+            },
+            elements: { point: { radius: 0 }, line: { tension: 0.4 } },
+          },
+        });
+      }
+      function initializeCharts() {
+        const e = document.documentElement.classList.contains('dark'),
+          o = e ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+          t = e ? '#9CA3AF' : '#495057',
+          a = GASES[activeMainChartGas];
+        (mainChart = createChart(
+          document.getElementById('gas-chart').getContext('2d'),
+          {
+            label: a.name,
+            data: Array(CHART_DATA_POINTS).fill(null),
+            borderColor: a.color,
+            fill: !0,
+          },
+          1.5 * a.danger_high || 1.5 * a.normal,
+          !0
+        )),
+          updateGasSelector(),
+          (riskScoreGauge = new Chart(
+            elements.riskScoreGauge.getContext('2d'),
+            {
+              type: 'doughnut',
+              data: {
+                datasets: [
+                  {
+                    data: [0, 100],
+                    backgroundColor: ['#26C6DA', e ? '#374151' : '#e9ecef'],
+                    borderWidth: 0,
+                  },
+                ],
+              },
+              options: {
+                responsive: !0,
+                maintainAspectRatio: !1,
+                cutout: '80%',
+                plugins: {
+                  tooltip: { enabled: !1 },
+                  doughnutlabel: {
+                    labels: [
+                      {
+                        text: '0%',
+                        font: { size: 24, weight: 'bold', family: 'Inter' },
+                        color: '#26C6DA',
+                      },
+                      {
+                        text: '위험도',
+                        font: { size: 12, family: 'Inter' },
+                        color: t,
+                      },
+                    ],
+                  },
+                },
+              },
+              plugins: [
+                {
+                  id: 'doughnutlabel',
+                  afterDraw(e) {
+                    const { labels: o } = e.options.plugins.doughnutlabel;
+                    if (o && o.length) {
+                      const {
+                        ctx: t,
+                        chartArea: { top: a, bottom: s, left: n, right: i },
+                      } = e;
+                      let r = (a + s) / 2 - 8;
+                      o.forEach((e) => {
+                        (t.font = `${e.font.weight || 'normal'} ${e.font.size || 12}px ${e.font.family || 'sans-serif'}`),
+                          (t.fillStyle = e.color || '#fff'),
+                          (t.textAlign = 'center'),
+                          (t.textBaseline = 'middle'),
+                          t.fillText(e.text, (n + i) / 2, r),
+                          (r += 1.5 * (e.font.size || 12));
+                      });
+                    }
+                  },
+                },
+              ],
+            }
+          ));
+        const s = Array.from({ length: 7 }, (e, o) => {
+          const t = new Date();
+          return (
+            t.setDate(t.getDate() - o), `${t.getMonth() + 1}/${t.getDate()}`
+          );
+        }).reverse();
+        (alarmHistoryChart = new Chart(
+          elements.alarmHistoryChart.getContext('2d'),
+          {
+            type: 'bar',
+            data: {
+              labels: s,
+              datasets: [
+                {
+                  label: '경보 발생 건수',
+                  data: [2, 3, 1, 4, 2, 5, 3],
+                  backgroundColor: '#FFA726',
+                  borderColor: '#FFA726',
+                  borderWidth: 1,
+                  borderRadius: 4,
+                },
+              ],
+            },
+            options: {
+              responsive: !0,
+              maintainAspectRatio: !1,
+              plugins: { legend: { display: !1 } },
+              scales: {
+                y: {
+                  beginAtZero: !0,
+                  grid: { color: o },
+                  ticks: { color: t, stepSize: 1 },
+                },
+                x: { grid: { color: o }, ticks: { color: t } },
+              },
+            },
+          }
+        )),
+          (sensorStatusChart = new Chart(
+            elements.sensorStatusChart.getContext('2d'),
+            {
+              type: 'doughnut',
+              data: {
+                labels: ['정상', '경보', '오류/위험'],
+                datasets: [
+                  {
+                    data: [0, 0, 0],
+                    backgroundColor: ['#26C6DA', '#FFA726', '#EF5350'],
+                    borderWidth: 0,
+                  },
+                ],
+              },
+              options: {
+                responsive: !0,
+                maintainAspectRatio: !1,
+                cutout: '70%',
+                plugins: {
+                  legend: { position: 'bottom', labels: { color: t } },
+                },
+              },
+            }
+          ));
+      }
+      function updateSensorStatusDistribution() {
+        if (sensorStatusChart) {
+          let e = 0,
+            o = 0,
+            t = 0;
+          sensors.forEach((s) => {
+            '오류' === s.overall_alarm_status ||
+            '2차 경보' === s.overall_alarm_status
+              ? t++
+              : '1차 경보' === s.overall_alarm_status
+                ? o++
+                : e++;
+          }),
+            (sensorStatusChart.data.datasets[0].data = [e, o, t]),
+            sensorStatusChart.update('none');
+        }
+      }
+      function updateGasSelector() {
+        elements.gasSelector.innerHTML = Object.keys(GASES)
+          .map(
+            (t) =>
+              `<button data-gas="${t}" class="gas-selector-btn ${t === activeMainChartGas ? 'active' : ''}" style="--color-active: ${GASES[t].color};">${GASES[t].name}</button>`
+          )
+          .join('');
+      }
+      function updateMainChart() {
+        const t = sensors[0],
+          o = activeMainChartGas,
+          a = GASES[o],
+          e = t.gas_concentrations[o];
+        (elements.mainChartTitle.innerHTML = `<i data-lucide="bar-chart-2"></i> 실시간 ${a.name} 트렌드 (3공장 A라인-01)`),
+          lucide.createIcons();
+        let s = 'status-normal';
+        (a.danger_high && e > a.danger_high) ||
+        (a.danger_low && e < a.danger_low)
+          ? (s = 'status-danger')
+          : (a.warn_high && e > a.warn_high) ||
+            (a.warn_low && e < a.warn_low && (s = 'status-warning')),
+          (elements.liveConcentration.className = `text-3xl font-bold font-mono ${s}`),
+          (elements.liveConcentration.textContent = `${e.toFixed(1)} ${a.unit}`),
+          (mainChart.data.datasets[0].data = t.history[o] || []),
+          (mainChart.data.datasets[0].borderColor = a.color);
+        const n = mainChart.canvas.getContext('2d'),
+          i = n.createLinearGradient(0, 0, 0, 250);
+        i.addColorStop(0, `${a.color}80`),
+          i.addColorStop(1, `${a.color}00`),
+          (mainChart.data.datasets[0].backgroundColor = i),
+          mainChart.update('quiet');
+      }
+      function showSensorModal(t) {
+        (activeModalSensorId = t),
+          updateSensorModal(),
+          elements.sensorModal.classList.remove('hidden');
+      }
+      function updateSensorModal() {
+        const t = sensors.find((t) => t.id === activeModalSensorId);
+        if (t) {
+          (elements.modalSensorLocation.textContent = t.location),
+            (elements.modalSensorStatus.className = 'text-sm status-normal'),
+            t.overall_alarm_status.includes('2차') || '오류' === t.sensor_status
+              ? (elements.modalSensorStatus.className = 'text-sm status-danger')
+              : t.overall_alarm_status.includes('1차') &&
+                (elements.modalSensorStatus.className =
+                  'text-sm status-warning'),
+            (elements.modalSensorStatus.textContent = `전체 상태: ${t.overall_alarm_status}`),
+            (elements.modalGasDetails.innerHTML = ''),
+            Object.keys(GASES).forEach((o) => {
+              const a = GASES[o],
+                e = t.gas_concentrations[o],
+                s = document.createElement('div');
+              s.className = 'p-4 rounded-lg kpi-bg';
+              let i = 'status-normal';
+              (a.danger_high && e > a.danger_high) ||
+              (a.danger_low && e < a.danger_low)
+                ? (i = 'status-danger')
+                : (a.warn_high && e > a.warn_high) ||
+                  (a.warn_low && e < a.warn_low && (i = 'status-warning'));
+              const r = `<p class="text-2xl font-mono font-bold ${i}">${e.toFixed(2)} <span class="text-lg font-sans text-light">${a.unit}</span></p>`;
+              (s.innerHTML = `<div class="flex justify-between items-center mb-2"><h4 class="text-lg font-semibold text-sub">${a.name}</h4> ${r}</div><div class="h-24"><canvas id="detail-chart-${o}"></canvas></div>`),
+                elements.modalGasDetails.appendChild(s);
+              const l = t.history[o] || Array(CHART_DATA_POINTS).fill(null);
+              detailCharts[o] && detailCharts[o].destroy(),
+                (detailCharts[o] = createChart(
+                  document.getElementById(`detail-chart-${o}`).getContext('2d'),
+                  { data: l, borderColor: GASES[o].color, fill: !1 },
+                  void 0
+                ));
+            });
+        }
+      }
+
+      const reportData = {
+        일간: {
+          period: '2025년 6월 26일 00:00 ~ 23:59',
+          risk: { level: '주의', value: 32, color: 'status-warning' },
+          briefing:
+            "24시간 동안 총 <strong>3건의 1차 경보</strong>와 <strong>1건의 2차 경보</strong>가 발생했습니다. 전일 대비 경보 발생 건수는 15% 감소했으나, <strong>3공장 A라인</strong>에서 황화수소(H₂S) 농도가 2차 경보 기준을 초과하는 등 국지적 위험 상황이 있었습니다. 시설 종합 위험도는 오전 한때 '주의' 단계까지 상승했으나, 신속한 조치 후 '안정' 상태로 복귀했습니다.",
+          events: [
+            {
+              time: '14:32',
+              location: '3공장 A라인-01',
+              gas: '황화수소(H₂S)',
+              level: '<span class="status-danger">2차 경보</span>',
+              concentration: '22.5 ppm',
+              action: '작업자 즉시 대피 및 관계자 외 출입 금지',
+            },
+            {
+              time: '10:15',
+              location: '2공장 C라인-05',
+              gas: '가연성가스(LEL)',
+              level: '<span class="status-warning">1차 경보</span>',
+              concentration: '12.8 %LEL',
+              action: '화기 작업 금지 및 누출원 확인',
+            },
+            {
+              time: '08:40',
+              location: '3공장 B라인-08',
+              gas: '일산화탄소(CO)',
+              level: '<span class="status-warning">1차 경보</span>',
+              concentration: '35.1 ppm',
+              action: '즉시 환기 및 휴대용 감지기로 재확인',
+            },
+            {
+              time: '02:11',
+              location: '1공장 A라인-03',
+              gas: '산소(O₂)',
+              level: '<span class="status-warning">1차 경보</span>',
+              concentration: '19.2 %',
+              action: '환기 상태 점검 및 작업자 상태 확인',
+            },
+          ],
+          insights: [
+            '<strong>반복 경보 감지:</strong> `2공장 C라인-05` 센서는 최근 72시간 내 3회 이상 가연성가스(LEL) 1차 경보가 발생했습니다. 이는 미세 누출 또는 간헐적 누출 패턴일 가능성이 높습니다.',
+            '<strong>센서 이상 감지:</strong> `4공장 D라인-09` 센서에서 23:50 경 비정상적인 데이터(값: -999)가 5분간 수신되었습니다. 자동 리셋 후 정상 복구되었으나, 센서 점검이 필요합니다.',
+            "<strong>위험도 예측:</strong> 현재 데이터 추세 분석 결과, <strong>3공장</strong>의 전반적인 가스 농도가 타 공장에 비해 평균 8% 높게 유지되고 있습니다. 익일 오전, 해당 구역의 위험도가 '주의' 단계로 재상승할 확률은 <strong>65%</strong>로 예측됩니다.",
+          ],
+          recommendations: [
+            '<span class="tag" style="background-color: #EF5350;">긴급</span> `3공장 A라인` 전체 구역의 설비 및 배관을 정밀 점검하여 황화수소(H₂S) 누출 원인을 즉시 제거하십시오.',
+            '<span class="tag" style="background-color: #FFA726;">점검</span> `2공장 C라인-05` 센서 주변의 가스 누출 여부를 정밀 탐지하고, 센서 자체의 교정(Calibration)을 진행하십시오.',
+            '<span class="tag" style="background-color: #26C6DA;">예방</span> `3공장` 전체의 환기 시스템 가동 시간을 10% 늘려 선제적인 안전 관리를 강화할 것을 권장합니다.',
+          ],
+        },
+        주간: {
+          period: '2025년 6월 20일 ~ 2025년 6월 26일',
+          risk: {
+            level: '안정 → 주의 → 안정',
+            value: null,
+            color: 'status-normal',
+          },
+          briefing:
+            "금주 시설 종합 위험도는 주초 '안정' 상태를 유지했으나, 26일(목) 3공장의 2차 경보 발생으로 '주의' 단계로 상향 조정되었습니다. 주간 총 경보 발생 건수는 <strong>18건</strong>으로, 전주 대비 <strong>2건 증가</strong>했습니다. 특히 <strong>일산화탄소(CO) 관련 경보</strong>가 전체의 45%를 차지하여 주요 관리 대상으로 분석됩니다.",
+          stats: [
+            '<strong>경보 등급별 발생 건수:</strong> 2차 경보: 1건 (H₂S), 1차 경보: 17건 (CO: 8건, LEL: 5건, O₂: 4건)',
+            '<strong>위험 지역 Top 3:</strong> 1. `3공장` (7건) 2. `2공장` (5건) 3. `1공장` (4건)',
+            '<strong>센서 오류 발생:</strong> 총 2개 센서(`4공장 D라인-09`, `1공장 B라인-02`)에서 일시적 통신 오류 감지',
+          ],
+          insights: [
+            '<strong>위험 동향 분석:</strong> `3공장`의 위험도가 주 후반 급격히 상승하는 패턴을 보였습니다. 이는 특정 라인의 노후화 또는 작업 공정 변화와 연관이 있을 수 있습니다.',
+            '<strong>가스별 상관관계 분석:</strong> 일산화탄소(CO) 농도가 상승할 때, 약 30분 후 동일 구역의 이산화탄소(CO₂) 농도 또한 유의미하게 상승하는 경향이 발견되었습니다. 이는 불완전 연소 또는 환기 불량의 가능성을 시사합니다.',
+            '<strong>전주 대비 변화:</strong> 가연성가스(LEL) 경보 발생률은 전주 대비 30% 감소하여 안정화 추세이나, 일산화탄소(CO) 경보는 25% 증가하여 관리가 필요합니다.',
+          ],
+          recommendations: [
+            '<span class="tag" style="background-color: #FFA726;">집중 관리</span> 차주, <strong>3공장</strong>을 \'특별 안전 관리 구역\'으로 지정하고 순찰 및 점검 횟수를 2배로 늘릴 것을 권고합니다.',
+            '<span class="tag" style="background-color: #EF5350;">원인 분석</span> 일산화탄소(CO) 경보가 잦은 `2공장`과 `3공장`의 연소 설비 및 환기 시스템에 대한 근본적인 원인 분석 및 개선 계획 수립이 필요합니다.',
+            '<span class="tag" style="background-color: #42A5F5;">시스템</span> 통신 오류가 발생한 2개 센서는 차주 정기점검 시 최우선으로 교체하거나 수리하십시오.',
+          ],
+        },
+        월간: {
+          period: '2025년 6월 1일 ~ 2025년 6월 26일',
+          risk: { level: 'B (안정)', value: null, color: 'status-normal' },
+          briefing:
+            "6월 한 달간 시설 전체의 안전 상태는 전반적으로 '안정' 수준을 유지했습니다. 총 <strong>65건의 경보</strong>가 발생했으며, 이는 전월 대비 <strong>12% 감소</strong>한 수치입니다. '시설 종합 위험도' 점수는 월초 25%에서 월말 18%로 하락하여 긍정적인 추세를 보였습니다. 다만, 월말에 발생한 2차 경보 1건은 지속적인 관리가 필요함을 시사합니다.",
+          stats: [
+            '<strong>총 경보 발생:</strong> 65건 (2차: 1건, 1차: 64건)',
+            '<strong>가장 많이 발생한 경보:</strong> 일산화탄소(CO) 1차 경보 (31건, 47.7%)',
+            '<strong>가장 안전했던 구역:</strong> 5공장 (월간 경보 2건)',
+            '<strong>가장 위험했던 구역:</strong> 3공장 (월간 경보 25건)',
+            '<strong>월 평균 위험도 점수:</strong> 21.5%',
+          ],
+          insights: [
+            '<strong>위험도 개선 추세:</strong> 6월 첫째 주 대비 넷째 주, 전체적인 1차 경보 발생 빈도가 22% 감소했습니다. 이는 정기적인 환기 시스템 점검 및 작업자 안전 교육의 효과로 분석됩니다.',
+            '<strong>계절적 요인 분석:</strong> 과거 1년 데이터와 비교 시, 6월은 타 월에 비해 황화수소(H₂S) 농도가 미세하게 상승하는 경향이 있습니다. 이는 기온 및 습도 상승과 연관이 있을 수 있습니다.',
+            '<strong>예방 정비 효과 예측:</strong> AI 시뮬레이션 결과, 현재 추세가 유지될 경우 7월의 총 경보 발생 건수는 60건 미만으로 감소할 확률이 <strong>78%</strong>입니다. 만약 3공장에 대한 집중 개선 조치가 이행된다면, 50건 미만으로 감소할 확률은 <strong>85%</strong>까지 상승합니다.',
+          ],
+          recommendations: [
+            '<span class="tag" style="background-color: #6610f2;">투자 제안</span> 경보 발생 빈도가 가장 높은 <strong>3공장</strong>의 노후 센서를 차세대 스마트 센서로 교체하는 방안을 검토하십시오. AI 예측 모델에 따르면, 센서 교체 시 해당 구역의 경보 발생률을 최대 40%까지 줄일 수 있습니다.',
+            '<span class="tag" style="background-color: #6f42c1;">프로세스 개선</span> 하절기(7-8월) 황화수소(H₂S) 관리 매뉴얼을 별도로 수립하여 전 작업자에게 배포하고, 관련 설비의 점검 주기를 단축할 것을 권장합니다.',
+            '<span class="tag" style="background-color: #17a2b8;">교육</span> 월간 데이터를 바탕으로 가장 빈번했던 \'일산화탄소(CO) 중독 예방\' 관련 특별 안전 교육을 7월 초에 실시하십시오.',
+          ],
+        },
+      };
+      function generateReportHTML(t) {
+        const e = reportData[t];
+        if (!e) return '<p>보고서 데이터를 찾을 수 없습니다.</p>';
+        const o = e.risk.value
+          ? `<span class="${e.risk.color} font-bold">${e.risk.level} (${e.risk.value}%)</span>`
+          : `<span class="${e.risk.color} font-bold">${e.risk.level}</span>`;
+        let a = '';
+        e.events &&
+          (a = `<h3>주요 이벤트 및 경보 내역</h3><table><thead><tr><th>발생 시각</th><th>위치</th><th>감지 가스</th><th>경보 등급</th><th>최대 농도</th><th>AI 권장 조치</th></tr></thead><tbody>${e.events.map((t) => `<tr><td>${t.time}</td><td>${t.location}</td><td>${t.gas}</td><td>${t.level}</td><td>${t.concentration}</td><td>${t.action}</td></tr>`).join('')}</tbody></table>`);
+        let s = '';
+        return (
+          e.stats &&
+            (s = `<h3>${t} 경보 통계</h3><ul>${e.stats.map((t) => `<li>${t}</li>`).join('')}</ul>`),
+          `<div class="mb-6"><p><strong>보고 기간:</strong> ${e.period}</p><p><strong>종합 위험도:</strong> ${o}</p></div><h3>종합 브리핑</h3><p>${e.briefing}</p>${a}${s}<h3>AI 분석 및 인사이트</h3><ul>${e.insights.map((t) => `<li>${t}</li>`).join('')}</ul><h3>권장 조치사항</h3><ol>${e.recommendations.map((t) => `<li>${t}</li>`).join('')}</ol>`
+        );
+      }
+
+      const applyTheme = (e) => {
+        document.documentElement.classList.toggle('dark', 'dark' === e);
+          mainChart &&
+            ('dark' === e
+              ? ((mainChart.options.scales.y.grid.color =
+                  'rgba(255, 255, 255, 0.05)'),
+                (mainChart.options.scales.y.ticks.color = '#9CA3AF'),
+                (alarmHistoryChart.options.scales.y.grid.color =
+                  'rgba(255, 255, 255, 0.05)'),
+                (alarmHistoryChart.options.scales.y.ticks.color = '#9CA3AF'),
+                (alarmHistoryChart.options.scales.x.grid.color =
+                  'rgba(255, 255, 255, 0.05)'),
+                (alarmHistoryChart.options.scales.x.ticks.color = '#9CA3AF'),
+                (sensorStatusChart.options.plugins.legend.labels.color =
+                  '#9CA3AF'))
+              : ((mainChart.options.scales.y.grid.color =
+                  'rgba(0, 0, 0, 0.05)'),
+                (mainChart.options.scales.y.ticks.color = '#495057'),
+                (alarmHistoryChart.options.scales.y.grid.color =
+                  'rgba(0, 0, 0, 0.05)'),
+                (alarmHistoryChart.options.scales.y.ticks.color = '#495057'),
+                (alarmHistoryChart.options.scales.x.grid.color =
+                  'rgba(0, 0, 0, 0.05)'),
+                (alarmHistoryChart.options.scales.x.ticks.color = '#495057'),
+                (sensorStatusChart.options.plugins.legend.labels.color =
+                  '#495057')),
+            mainChart.update(),
+            alarmHistoryChart.update(),
+            sensorStatusChart.update(),
+            updateRiskScore());
+      };
+      // 테마 토글 이벤트 리스너 제거됨
+        elements.sensorModal.addEventListener('click', (e) => {
+          e.target === elements.sensorModal &&
+            (elements.sensorModal.classList.add('hidden'),
+            (activeModalSensorId = null));
+        }),
+        elements.closeSensorModalBtn.addEventListener('click', () => {
+          elements.sensorModal.classList.add('hidden'),
+            (activeModalSensorId = null);
+        }),
+        elements.blueprintContainer.addEventListener('click', (e) => {
+          e.target.classList.contains('sensor-dot') &&
+            showSensorModal(e.target.dataset.sensorId);
+        }),
+        elements.gasSelector.addEventListener('click', (e) => {
+          const o = e.target.closest('.gas-selector-btn');
+          o &&
+            o.dataset.gas &&
+            ((activeMainChartGas = o.dataset.gas),
+            updateGasSelector(),
+            updateMainChart());
+        });
+
+      window.onload = () => {
+        // Elements 객체 확인
+        
+        // Elements가 null인지 체크
+        const missingElements = [];
+        Object.keys(elements).forEach(key => {
+          if (!elements[key]) {
+            missingElements.push(key);
+          }
+        });
+
+        applyTheme(localStorage.getItem('theme') || 'light');
+
+        // CSS Grid is used for layout, so GridStack is removed.
+        // We will manually resize charts on window resize.
+        window.addEventListener('resize', () => {
+          [
+            mainChart,
+            riskScoreGauge,
+            alarmHistoryChart,
+            sensorStatusChart,
+          ].forEach((chart) => {
+            if (chart && chart.canvas) {
+              // Check if chart and its canvas exist
+              try {
+                chart.resize();
+              } catch (e) {
+                console.error('Error resizing chart: ', e, chart);
+              }
+            }
+          });
+        });
+
+        initializeBlueprint();
+        initializeSensors();
+        initializeCharts();
+        updateUI();
+        setInterval(simulateDataUpdate, 2000);
+        // setInterval(updateTime, 1000); // 제거됨
+        
+        // --- 보고서 관련 이벤트 리스너 ---
+        
+        if (elements.openReportMenuBtn && elements.reportMenu) {
+          elements.openReportMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            elements.reportMenu.classList.toggle('hidden');
+          });
+          
+          // 외부 클릭 시 메뉴 닫기
+          document.addEventListener('click', (event) => {
+            if (!elements.openReportMenuBtn.contains(event.target) && 
+                !elements.reportMenu.contains(event.target)) {
+              elements.reportMenu.classList.add('hidden');
+            }
+          });
+        }
+        
+        // 보고서 메뉴 아이템 이벤트
+        document.querySelectorAll('.report-menu-item').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const type = e.target.dataset.reportType;
+            if (elements.reportModalTitle && elements.reportModalBody && elements.reportModal) {
+              elements.reportModalTitle.textContent = `${type} AI 안전 보고서`;
+              elements.reportModalBody.innerHTML = generateReportHTML(type);
+              elements.reportModal.classList.remove('hidden');
+              elements.reportMenu.classList.add('hidden');
+            }
+          });
+        });
+        
+        // 보고서 모달 닫기 이벤트
+        if (elements.closeReportModalBtn) {
+          elements.closeReportModalBtn.addEventListener('click', () => {
+            elements.reportModal.classList.add('hidden');
+          });
+        }
+        
+        // 보고서 다운로드 (PDF 인쇄) 이벤트
+        if (elements.reportDownloadBtn) {
+          elements.reportDownloadBtn.addEventListener('click', function() {
+            try {
+              // 인쇄 전에 모달이 열려있는지 확인
+              if (elements.reportModal.classList.contains('hidden')) {
+                alert('보고서를 먼저 생성해주세요.');
+                return;
+              }
+              
+              // 인쇄 실행
+              window.print();
+            } catch (error) {
+              alert('인쇄 기능에 오류가 발생했습니다.');
+            }
+          });
+        }
+        
+        // Lucide 아이콘 다시 생성
+        lucide.createIcons();
+      };
+      
+      
+      // --- Sidebar Toggle (DOM이 로드된 후 바로 실행) ---
+      document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggleBtn = document.getElementById("sidebar-toggle-btn");
+        const sidebarToggleIconClose = document.getElementById(
+          "sidebar-toggle-icon-close"
+        );
+        const sidebarToggleIconOpen = document.getElementById(
+          "sidebar-toggle-icon-open"
+        );
+
+        if (sidebarToggleBtn && sidebar) {
+          sidebarToggleBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            sidebar.classList.toggle("sidebar-closed");
+            sidebarToggleIconClose.classList.toggle("hidden");
+            sidebarToggleIconOpen.classList.toggle("hidden");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
