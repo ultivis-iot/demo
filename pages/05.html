@@ -1,0 +1,1687 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>울산 중구 스마트 재활용 분리수거 대시보드</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="./custom-styles.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Leaflet.js for Map -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <style>
+      @font-face {
+        font-family: 'SUIT-Regular';
+        src: url('../SUIT-Regular.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      body {
+        font-family:
+          'SUIT-Regular',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #f8f8f8;
+        color: #212529;
+      }
+      /* 스크롤바 스타일링 */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+      
+      /* Leaflet 지도 z-index 조정 */
+      .leaflet-pane,
+      .leaflet-map-pane,
+      .leaflet-control-container {
+        z-index: 1 !important;
+      }
+      
+      .leaflet-popup-pane {
+        z-index: 700 !important;
+      }
+      
+      .leaflet-tooltip-pane {
+        z-index: 650 !important;
+      }
+      #sidebar {
+        transition:
+          transform 0.3s ease-in-out,
+          margin-left 0.3s ease-in-out;
+        transform: translateX(0);
+        width: 280px;
+        flex-shrink: 0;
+      }
+      #sidebar.sidebar-closed {
+        transform: translateX(-100%);
+        margin-left: -280px;
+      }
+      .main-content {
+        transition: margin-left 0.3s ease-in-out;
+      }
+      /* Sidebar Item Styles */
+      .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        color: #000000;
+        transition:
+          background-color 0.2s,
+          color 0.2s;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+      .sidebar-item:hover {
+        color: #111827;
+        background-color: #f3f4f6;
+      }
+      .active-sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        background-color: #e5f1ff;
+        color: #0075ff;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+      .widget {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.05),
+          0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        padding: 1.5rem;
+      }
+      .header {
+        border-bottom-color: #e9ecef;
+      }
+      .map-bg {
+        background-color: #f1f3f5;
+        border-color: #dee2e6;
+      }
+      .text-main {
+        color: #212529;
+      }
+      .text-sub {
+        color: #495057;
+      }
+      .text-light {
+        color: #868e96;
+      }
+      .kpi-bg {
+        background-color: #f8f9fa;
+      }
+      .ai-action-bg {
+        background-color: #f1f3f5;
+      }
+      .report-btn {
+        background-color: #343a40;
+      }
+      .report-btn:hover {
+        background-color: #23272b;
+      }
+
+      .dark body {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      .dark .widget {
+        background-color: #1e1e1e;
+        border-color: #333;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .dark .header {
+        border-bottom-color: #333;
+      }
+      .dark .map-bg {
+        background-color: #00000020;
+        border-color: #333;
+      }
+      .dark .text-main {
+        color: #ffffff;
+      }
+      .dark .text-sub {
+        color: #e0e0e0;
+      }
+      .dark .text-light {
+        color: #adb5bd;
+      }
+      .dark .kpi-bg {
+        background-color: #0000001a;
+      }
+      .dark .ai-action-bg {
+        background-color: #00000033;
+      }
+      .dark .report-btn {
+        background-color: #495057;
+      }
+      .dark .report-btn:hover {
+        background-color: #343a40;
+      }
+
+      .blinking-warning {
+        animation: blink 1.5s linear infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .status-operational {
+        color: #26c6da;
+      }
+      .status-inspect {
+        color: #ffa726;
+      }
+      .status-error {
+        color: #ef5350;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #212121;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #424242;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #616161;
+      }
+      html:not(.dark) ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      html:not(.dark) ::-webkit-scrollbar-thumb {
+        background: #ced4da;
+      }
+      html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+      }
+
+      .fill-bar-bg {
+        background-color: #e9ecef;
+      }
+      .dark .fill-bar-bg {
+        background-color: #374151;
+      }
+      .fill-bar {
+        transition: width 0.5s ease-in-out;
+      }
+
+      #report-modal-body h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid;
+      }
+      .dark #report-modal-body h3 {
+        border-color: #424242;
+      }
+      html:not(.dark) #report-modal-body h3 {
+        border-color: #dee2e6;
+      }
+      #report-modal-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      #report-modal-body th,
+      #report-modal-body td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid;
+      }
+      #report-modal-body th {
+        font-weight: 600;
+      }
+      .dark #report-modal-body th,
+      .dark #report-modal-body td {
+        border-color: #333;
+      }
+      html:not(.dark) #report-modal-body th,
+      html:not(.dark) #report-modal-body td {
+        border-color: #dee2e6;
+      }
+      #report-modal-body .tag {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+      }
+      #report-modal-body ul,
+      #report-modal-body ol {
+        padding-left: 1.5rem;
+        margin-top: 1rem;
+      }
+      #report-modal-body li {
+        margin-bottom: 0.5rem;
+      }
+
+      /* 인쇄 전용 스타일 */
+      @media print {
+        /* 페이지 설정을 먼저 정의 */
+        @page {
+          margin: 15mm !important;
+          size: A4 !important;
+        }
+        
+        /* 모든 요소 숨기기 */
+        * {
+          visibility: hidden !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        
+        /* HTML과 BODY 초기화 */
+        html, body {
+          height: auto !important;
+          overflow: visible !important;
+          background: white !important;
+        }
+        
+        /* 보고서 모달과 내용만 표시 */
+        #report-modal,
+        #report-modal *,
+        #report-modal-title,
+        #report-modal-title *,
+        #report-modal-body,
+        #report-modal-body * {
+          visibility: visible !important;
+        }
+        
+        /* 모달을 최상위로 직접 배치 */
+        #report-modal {
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: auto !important;
+          background: white !important;
+          transform: none !important;
+          z-index: 1 !important;
+          display: block !important;
+        }
+        
+        #report-modal > div {
+          position: static !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          max-width: none !important;
+          width: 100% !important;
+          height: auto !important;
+          box-shadow: none !important;
+          border-radius: 0 !important;
+          background: white !important;
+          display: block !important;
+        }
+        
+        /* 헤더와 불필요한 요소들 숨기기 */
+        #close-report-modal-btn,
+        #report-download-btn,
+        .mb-4.flex.items-center.justify-between.border-b.pb-4,
+        .mt-4.flex.justify-end.border-t.pt-4 {
+          display: none !important;
+          visibility: hidden !important;
+        }
+        
+        /* 제목 스타일 */
+        #report-modal-title {
+          font-size: 20px !important;
+          font-weight: bold !important;
+          color: #000 !important;
+          margin: 0 0 15px 0 !important;
+          padding: 0 !important;
+          text-align: center !important;
+          display: block !important;
+        }
+        
+        /* 본문 내용 스타일 */
+        #report-modal-body {
+          color: #333 !important;
+          line-height: 1.5 !important;
+          font-size: 12px !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+          display: block !important;
+        }
+        
+        #report-modal-body h3 {
+          color: #000 !important;
+          font-size: 16px !important;
+          font-weight: bold !important;
+          margin: 15px 0 8px 0 !important;
+          padding: 0 !important;
+          page-break-after: avoid !important;
+        }
+        
+        #report-modal-body h3:first-child {
+          margin-top: 0 !important;
+        }
+        
+        #report-modal-body table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          margin: 10px 0 !important;
+          page-break-inside: avoid !important;
+        }
+        
+        #report-modal-body th,
+        #report-modal-body td {
+          border: 1px solid #333 !important;
+          padding: 6px !important;
+          text-align: left !important;
+          font-size: 11px !important;
+          line-height: 1.3 !important;
+        }
+        
+        #report-modal-body th {
+          background-color: #f5f5f5 !important;
+          font-weight: bold !important;
+        }
+        
+        #report-modal-body .tag {
+          display: inline-block !important;
+          padding: 1px 4px !important;
+          border: 1px solid #666 !important;
+          border-radius: 4px !important;
+          font-size: 9px !important;
+          margin: 1px !important;
+          background-color: #f8f8f8 !important;
+          color: #333 !important;
+        }
+        
+        #report-modal-body ul,
+        #report-modal-body ol {
+          margin: 8px 0 !important;
+          padding-left: 15px !important;
+        }
+        
+        #report-modal-body li {
+          margin: 3px 0 !important;
+          line-height: 1.4 !important;
+        }
+        
+        #report-modal-body p {
+          margin: 5px 0 !important;
+          line-height: 1.4 !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-[#f8f8f8]">
+    <!-- Header -->
+    <header class="fixed left-0 right-0 top-0 z-50 border-b bg-white shadow-2">
+      <div
+        class="ease flex max-h-16 w-full flex-col justify-start overflow-hidden px-5 transition-[max-height] duration-150 sm:flex-row sm:items-center sm:justify-between sm:overflow-visible sm:border-none"
+      >
+        <div class="my-auto flex min-h-16 items-center gap-3 sm:gap-4">
+          <button
+            id="sidebar-toggle-btn"
+            aria-controls="sidebar"
+            class="stroke-gray-600"
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="aspect-square w-6 shrink-0"
+            >
+              <path
+                id="sidebar-toggle-icon-close"
+                d="M20 24L12 16L20 8"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                id="sidebar-toggle-icon-open"
+                d="M6 8H26M6 16H26M6 24H26"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="hidden"
+              ></path>
+            </svg>
+          </button>
+          <a class="block" href="../index.html">
+            <img
+              src="../assets/logo-nav.png"
+              alt="Logo"
+              class="max-h-16 w-auto"
+            />
+          </a>
+          <div
+            class="text-gray-800 line-clamp-1 hidden w-fit whitespace-nowrap text-2xl font-bold"
+          >
+            스마트 재활용 분리수거 통합관제 대시보드
+          </div>
+        </div>
+        <ul
+          class="relative z-50 my-auto flex min-h-16 w-full justify-center gap-2 sm:border-none"
+        >
+          <div
+            class="text-gray-700 flex flex-1 items-center gap-3 whitespace-nowrap text-base max-sm:flex-wrap"
+          >
+            <nav
+              aria-label="Main"
+              data-orientation="horizontal"
+              dir="ltr"
+              class="relative z-10 flex w-full max-w-full flex-1 items-center justify-evenly sm:justify-end"
+            >
+              <div style="position: relative gap-y-1">
+                <ul
+                  data-orientation="horizontal"
+                  class="group flex flex-1 list-none items-center justify-center space-x-1"
+                  dir="ltr"
+                >
+                  <li class="flex flex-1 justify-center">
+                    <button
+                      class="date-[active]:text-primary disabled:text-gray-500 group group group inline-flex h-13 w-full items-center justify-center rounded-md px-0 py-2 text-lg font-bold transition-colors hover:bg-transparent hover:text-accent-foreground focus:bg-transparent focus:text-accent-foreground focus:outline-none disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-50 data-[active]:bg-transparent data-[state=open]:bg-transparent"
+                    >
+                      <div>
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-6 w-6 group-data-[state=open]:text-primary"
+                        >
+                          <path
+                            d="M7 21L3 17L7 13"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M17 17H3"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M17 3L21 7L17 11"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M7 7H21"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                        </svg>
+                      </div>
+                    </button>
+                  </li>
+                  <li>
+                    <div
+                      class="bg-graysclae-600 mx-2 my-auto h-3 w-px shrink-0"
+                    ></div>
+                  </li>
+                  <li class="flex flex-1 justify-center">
+                    <button
+                      class="date-[active]:text-primary disabled:text-gray-500 group group group inline-flex h-13 w-full items-center justify-center rounded-md bg-white px-0 py-2 text-lg font-medium transition-colors hover:bg-transparent hover:text-accent-foreground focus:bg-transparent focus:text-accent-foreground focus:outline-none disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-50 data-[active]:bg-transparent data-[state=open]:bg-transparent"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-6 w-6 group-data-[state=open]:text-primary"
+                        >
+                          <path
+                            d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                        </svg>
+                        <div
+                          class="no-layout-shift my-auto hidden text-grayscale-300 group-data-[state=open]:text-primary sm:flex"
+                          data-text="관제 매니저"
+                        >
+                          관제 매니저
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <div
+                class="absolute left-auto right-auto top-full flex justify-center sm:-right-4 lg:-right-5"
+              ></div>
+            </nav>
+          </div>
+        </ul>
+      </div>
+    </header>
+
+    <div class="flex h-screen pt-16">
+      <!-- New Sidebar -->
+      <aside
+        id="sidebar"
+        class="z-40 my-5 ml-5 rounded-2xl border border-solid border-grayscale-700 bg-white shadow-lg"
+      >
+        <div class="no-scrollbar flex h-full flex-col overflow-y-auto">
+          <nav id="lnb" class="p-4 text-lg font-medium">
+            <ul class="mt-[1px] flex flex-col gap-1.5">
+              <li class="py-[2px]">
+                <div
+                  id="nav-dashboard"
+                  data-page-id="dashboard"
+                  title="대시보드"
+                  class="active-sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
+                    ></path>
+                    <path
+                      d="M9 22V14H15V22"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]"
+                    >대시보드</span
+                  >
+                </div>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- 메인 컨텐츠 영역 -->
+      <div class="main-content flex flex-1 flex-col overflow-hidden">
+        <main class="flex-1 overflow-y-auto p-6">
+          <!-- 페이지 컨테이너 -->
+          <div id="page-content">
+            <!-- 대시보드 페이지 -->
+            <div id="dashboard-page" class="">
+              <!-- Page Title -->
+              <div class="mb-6 flex items-start justify-between">
+                <div>
+                  <h2 class="text-gray-800 text-[30px] font-bold">
+                    스마트 재활용 분리수거 통합관제 대시보드
+                  </h2>
+                  <p class="text-gray-500 text-sm">
+                    울산광역시 중구 스마트 재활용 분리수거 시스템을 통합
+                    관리합니다.
+                  </p>
+                </div>
+                <!-- 보고서 생성 버튼 -->
+                <div class="relative">
+                  <button
+                    id="open-report-menu-btn"
+                    class="report-btn flex items-center gap-2 rounded-lg px-4 py-2 font-bold text-white transition-colors"
+                  >
+                    <i data-lucide="file-text" class="h-4 w-4"></i> 보고서 생성
+                  </button>
+                  <div
+                    id="report-menu"
+                    class="absolute right-0 z-20 mt-2 hidden w-48 rounded-md border bg-white py-1 shadow-lg"
+                  >
+                    <a href="#" class="report-menu-item" data-report-type="일간"
+                      >일간 운영 보고서</a
+                    >
+                    <a href="#" class="report-menu-item" data-report-type="주간"
+                      >주간 운영 보고서</a
+                    >
+                    <a href="#" class="report-menu-item" data-report-type="ESG"
+                      >월간 ESG 보고서</a
+                    >
+                  </div>
+                </div>
+              </div>
+              <!-- 보고서 메뉴 스타일 -->
+              <style>
+                .report-menu-item {
+                  display: block;
+                  padding: 0.5rem 1rem;
+                  font-size: 0.875rem;
+                  color: #495057;
+                  text-decoration: none;
+                }
+                .report-menu-item:hover {
+                  background-color: #f1f3f5;
+                }
+              </style>
+              <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+                <div class="widget lg:col-span-8">
+                  <div class="grid h-full grid-cols-2 gap-5 sm:grid-cols-4">
+                    <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+                      <div class="rounded-full bg-blue-500/10 p-3">
+                        <i
+                          data-lucide="server"
+                          class="h-6 w-6 text-blue-400"
+                        ></i>
+                      </div>
+                      <div>
+                        <p class="text-light text-sm">총 수거기</p>
+                        <p
+                          id="total-machines"
+                          class="text-sub text-2xl font-bold"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                    <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+                      <div class="rounded-full bg-green-500/10 p-3">
+                        <i
+                          data-lucide="check-circle"
+                          class="h-6 w-6 text-green-400"
+                        ></i>
+                      </div>
+                      <div>
+                        <p class="text-light text-sm">정상 작동</p>
+                        <p
+                          id="operational-machines"
+                          class="text-sub text-2xl font-bold"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                    <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+                      <div class="rounded-full bg-orange-500/10 p-3">
+                        <i
+                          data-lucide="alert-triangle"
+                          class="h-6 w-6 text-orange-400"
+                        ></i>
+                      </div>
+                      <div>
+                        <p class="text-light text-sm">점검 필요</p>
+                        <p
+                          id="inspect-machines"
+                          class="text-sub text-2xl font-bold"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                    <div class="kpi-bg flex items-center gap-4 rounded-lg p-4">
+                      <div class="rounded-full bg-red-500/10 p-3">
+                        <i
+                          data-lucide="x-circle"
+                          class="h-6 w-6 text-red-500"
+                        ></i>
+                      </div>
+                      <div>
+                        <p class="text-light text-sm">오류</p>
+                        <p
+                          id="error-machines"
+                          class="text-sub text-2xl font-bold"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget lg:col-span-4" id="today-collection-widget">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    오늘의 수거량 (kg)
+                  </h2>
+                  <div
+                    class="flex w-full flex-grow items-center justify-center"
+                  >
+                    <canvas id="today-collection-chart"></canvas>
+                  </div>
+                </div>
+
+                <div class="widget h-[420px] lg:col-span-7">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    <i data-lucide="map" style="color: #000"></i> 수거기 위치 및
+                    상태
+                  </h2>
+                  <div
+                    id="map-container"
+                    class="map-bg relative flex-grow overflow-hidden rounded-lg"
+                    style="height: 100%"
+                  ></div>
+                </div>
+                <div class="widget h-[420px] lg:col-span-5">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    <i data-lucide="brain" style="color: #000"></i> AI 에이전트
+                  </h2>
+                  <div
+                    id="ai-feed"
+                    class="flex flex-grow items-center justify-center space-y-4 overflow-y-auto pr-2"
+                  >
+                    <p
+                      class="text-gray-500 flex flex-col items-center gap-2 text-center"
+                    >
+                      <i
+                        data-lucide="brain"
+                        class="text-gray-400 h-12 w-12"
+                      ></i>
+                      AI 에이전트가 시스템을 분석 중입니다...
+                    </p>
+                  </div>
+                </div>
+
+                <div class="widget lg:col-span-12">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    <i data-lucide="leaf" style="color: #000"></i> ESG 성과 및
+                    목표 달성 예측
+                  </h2>
+                  <div
+                    class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
+                  >
+                    <div class="kpi-bg col-span-1 rounded-lg p-4 md:col-span-2">
+                      <h3 class="text-sub mb-3 font-bold">Environmental</h3>
+                      <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm"
+                            >탄소 배출량 저감</span
+                          ><strong id="co2-reduction" class="text-sub text-lg"
+                            >0 kg</strong
+                          >
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm">나무 심기 효과</span
+                          ><strong id="tree-effect" class="text-sub text-lg"
+                            >0 그루</strong
+                          >
+                        </div>
+                        <div>
+                          <div
+                            class="mb-1 flex items-center justify-between text-sm"
+                          >
+                            <span class="text-sub font-medium"
+                              >연간 탄소 저감 목표 달성률</span
+                            ><span id="co2-goal-percent" class="text-light"
+                              >0%</span
+                            >
+                          </div>
+                          <div class="fill-bar-bg h-2.5 w-full rounded-full">
+                            <div
+                              id="co2-goal-bar"
+                              class="fill-bar h-2.5 rounded-full bg-green-500"
+                              style="width: 0%"
+                            ></div>
+                          </div>
+                          <p
+                            id="co2-goal-prediction"
+                            class="text-light mt-1 text-right text-xs"
+                          ></p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="kpi-bg rounded-lg p-4">
+                      <h3 class="text-sub mb-3 font-bold">Social</h3>
+                      <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm">총 지급 포인트</span
+                          ><strong id="total-points" class="text-sub text-lg"
+                            >0 P</strong
+                          >
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm">참여 시민 수</span
+                          ><strong id="citizen-count" class="text-sub text-lg"
+                            >0 명</strong
+                          >
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm"
+                            >포인트 기부 현황</span
+                          ><strong id="donated-points" class="text-sub text-lg"
+                            >0 P</strong
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <div class="kpi-bg rounded-lg p-4">
+                      <h3 class="text-sub mb-3 font-bold">Governance</h3>
+                      <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm"
+                            >수거기 운영 효율</span
+                          ><strong id="op-efficiency" class="text-sub text-lg"
+                            >0 %</strong
+                          >
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm">데이터 투명성</span
+                          ><strong class="text-sub text-lg">99.8 %</strong>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-light text-sm">시스템 응답</span
+                          ><strong id="response-time" class="text-sub text-lg"
+                            >정상</strong
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="widget h-[380px] lg:col-span-4">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    <i data-lucide="trash-2" style="color: #000"></i> 품목별
+                    누적 수거량
+                  </h2>
+                  <div class="flex-grow">
+                    <canvas id="collection-by-type-chart"></canvas>
+                  </div>
+                </div>
+                <div class="widget h-[380px] lg:col-span-4">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    <i data-lucide="battery-charging" style="color: #000"></i>
+                    수거기 포화도 현황
+                  </h2>
+                  <div
+                    id="fill-level-list"
+                    class="flex-grow space-y-3 overflow-y-auto pr-2"
+                  ></div>
+                </div>
+                <div class="widget h-[380px] lg:col-span-4">
+                  <h2
+                    class="mb-6 flex items-center gap-2 text-lg font-semibold"
+                    style="color: #000"
+                  >
+                    <i data-lucide="award" style="color: #000"></i> 이달의
+                    재활용 우수 시민
+                  </h2>
+                  <div
+                    id="leaderboard"
+                    class="flex-grow space-y-3 overflow-y-auto pr-2"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div
+      id="report-modal"
+      class="fixed inset-0 z-[9999] flex hidden items-center justify-center bg-black/60"
+    >
+      <div class="mx-4 w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl">
+        <div class="mb-4 flex items-center justify-between border-b pb-4">
+          <h3 id="report-modal-title" class="text-2xl font-bold text-gray-800"></h3>
+          <button
+            id="close-report-modal-btn"
+            class="text-4xl text-gray-400 hover:text-gray-600"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="flex flex-grow flex-col">
+          <div
+            id="report-modal-body"
+            class="max-h-[70vh] max-w-none overflow-y-auto pr-4 text-gray-700"
+          ></div>
+          <div class="mt-4 flex justify-end border-t pt-4">
+            <button
+              id="report-download-btn"
+              class="rounded-lg bg-gray-800 px-4 py-2 font-bold text-white transition-colors hover:bg-gray-700"
+            >
+              다운로드
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+
+      // --- Sidebar Toggle ---
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+      const sidebarToggleIconClose = document.getElementById(
+        'sidebar-toggle-icon-close'
+      );
+      const sidebarToggleIconOpen = document.getElementById(
+        'sidebar-toggle-icon-open'
+      );
+
+      if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('sidebar-closed');
+          sidebarToggleIconClose.classList.toggle('hidden');
+          sidebarToggleIconOpen.classList.toggle('hidden');
+        });
+      }
+
+      const TOTAL_MACHINES = 43;
+      const RECYCLABLES = {
+        pet: { name: 'PET', color: '#42A5F5', co2_factor: 2.1 },
+        can: { name: '캔', color: '#9E9E9E', co2_factor: 9.1 },
+        paper: { name: '종이', color: '#66BB6A', co2_factor: 0.9 },
+        plastic: { name: '플라스틱', color: '#FFEE58', co2_factor: 2.3 },
+      };
+      let machines = [],
+        map,
+        markers = [];
+      let todayCollectionChart, collectionByTypeChart;
+      let accumulatedPoints = 1450000,
+        citizenCount = 830,
+        donatedPoints = 124500;
+      const CO2_GOAL = 50000;
+
+      const elements = {
+        openReportMenuBtn: document.getElementById('open-report-menu-btn'),
+        reportMenu: document.getElementById('report-menu'),
+        totalMachines: document.getElementById('total-machines'),
+        operationalMachines: document.getElementById('operational-machines'),
+        inspectMachines: document.getElementById('inspect-machines'),
+        errorMachines: document.getElementById('error-machines'),
+        todayCollectionChart: document.getElementById('today-collection-chart'),
+        mapContainer: document.getElementById('map-container'),
+        aiFeed: document.getElementById('ai-feed'),
+        collectionByTypeChart: document.getElementById(
+          'collection-by-type-chart'
+        ),
+        fillLevelList: document.getElementById('fill-level-list'),
+        leaderboard: document.getElementById('leaderboard'),
+        co2Reduction: document.getElementById('co2-reduction'),
+        treeEffect: document.getElementById('tree-effect'),
+        co2GoalPercent: document.getElementById('co2-goal-percent'),
+        co2GoalBar: document.getElementById('co2-goal-bar'),
+        co2GoalPrediction: document.getElementById('co2-goal-prediction'),
+        totalPoints: document.getElementById('total-points'),
+        citizenCount: document.getElementById('citizen-count'),
+        donatedPoints: document.getElementById('donated-points'),
+        opEfficiency: document.getElementById('op-efficiency'),
+        reportModal: document.getElementById('report-modal'),
+        reportModalTitle: document.getElementById('report-modal-title'),
+        reportModalBody: document.getElementById('report-modal-body'),
+        closeReportModalBtn: document.getElementById('close-report-modal-btn'),
+        reportDownloadBtn: document.getElementById('report-download-btn'),
+      };
+
+      // --- All functions below are complete and un-minified ---
+
+      function initializeMachines() {
+        const ulsanJungguBounds = {
+          north: 35.58,
+          south: 35.53,
+          west: 129.29,
+          east: 129.35,
+        };
+        for (let i = 0; i < TOTAL_MACHINES; i++) {
+          machines.push({
+            id: `ULS-JUNGGU-${String(i + 1).padStart(3, '0')}`,
+            location: `울산 중구 ${i + 1}번 수거기`,
+            status: '정상',
+            fillLevel: Math.random() * 80,
+            collections: {
+              pet: 200 + Math.random() * 50,
+              can: 100 + Math.random() * 30,
+              paper: 150 + Math.random() * 40,
+              plastic: 80 + Math.random() * 20,
+            },
+            pos: {
+              lat:
+                ulsanJungguBounds.south +
+                Math.random() *
+                  (ulsanJungguBounds.north - ulsanJungguBounds.south),
+              lng:
+                ulsanJungguBounds.west +
+                Math.random() *
+                  (ulsanJungguBounds.east - ulsanJungguBounds.west),
+            },
+            failure_prob: Math.random() * 0.1,
+            last_event: '최근 정상 동작',
+          });
+        }
+        machines[5].fillLevel = 88;
+        machines[10].fillLevel = 92;
+        machines[15].status = '점검필요';
+      }
+
+      function simulateDataUpdate() {
+        machines.forEach((machine) => {
+          if (machine.status === '오류') return;
+          machine.fillLevel = Math.min(
+            100,
+            machine.fillLevel + Math.random() * 0.5
+          );
+          if (Math.random() < 0.2) {
+            const type =
+              Object.keys(RECYCLABLES)[Math.floor(Math.random() * 4)];
+            machine.collections[type] += Math.random() * 0.5;
+            accumulatedPoints += 10;
+            if (Math.random() < 0.05) donatedPoints += 10;
+            if (Math.random() < 0.01) citizenCount++;
+          }
+          machine.failure_prob = Math.max(
+            0,
+            Math.min(1, machine.failure_prob + (Math.random() - 0.4) * 0.01)
+          );
+          if (
+            machine.failure_prob > 0.7 &&
+            Math.random() < 0.01 &&
+            machine.status === '정상'
+          ) {
+            machine.status = '점검필요';
+            addAIFeed(
+              '고장 위험 예측',
+              `${machine.location}의 센서 오류 확률(${Math.round(machine.failure_prob * 100)}%)이 높습니다. 3일 이내 점검이 필요합니다.`,
+              'warning'
+            );
+          }
+          if (machine.failure_prob > 0.9 && Math.random() < 0.005) {
+            machine.status = '오류';
+            addAIFeed(
+              '시스템 오류 발생',
+              `${machine.location}에서 시스템 오류가 발생했습니다. 긴급 출동이 필요합니다.`,
+              'danger'
+            );
+          }
+        });
+        updateUI();
+      }
+
+      function updateUI() {
+        updateKPIs();
+        updateMap();
+        updateFillLevelList();
+        updateLeaderboard();
+        updateTodayCollectionChart();
+        updateCollectionByTypeChart();
+        updateESGMetrics();
+      }
+
+      function updateKPIs() {
+        elements.totalMachines.textContent = TOTAL_MACHINES;
+        const operational = machines.filter((m) => m.status === '정상').length;
+        elements.operationalMachines.textContent = operational;
+        elements.inspectMachines.textContent = machines.filter(
+          (m) => m.status === '점검필요'
+        ).length;
+        elements.errorMachines.textContent = machines.filter(
+          (m) => m.status === '오류'
+        ).length;
+        elements.opEfficiency.textContent = `${((operational / TOTAL_MACHINES) * 100).toFixed(1)} %`;
+      }
+
+      function initMap() {
+        const mapElement = document.getElementById('map-container');
+        if (!mapElement) return;
+
+        // 울산 중구 중심 좌표
+        window.mapInstance = L.map('map-container').setView(
+          [35.558, 129.319],
+          14
+        );
+
+        // OpenStreetMap 타일 레이어 추가
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap',
+        }).addTo(window.mapInstance);
+
+        window.mapMarkers = [];
+        updateMap();
+      }
+
+      function updateMap() {
+        if (!window.mapInstance) return;
+
+        // 기존 마커 제거
+        if (window.mapMarkers) {
+          window.mapMarkers.forEach((marker) => {
+            window.mapInstance.removeLayer(marker);
+          });
+          window.mapMarkers = [];
+        }
+
+        // 새 마커 추가
+        machines.forEach((m) => {
+          let markerColor = 'green';
+          if (m.status === '점검필요') {
+            markerColor = 'orange';
+          } else if (m.status === '오류') {
+            markerColor = 'red';
+          } else if (m.fillLevel > 85) {
+            markerColor = 'orange';
+          }
+
+          const marker = L.circleMarker([m.pos.lat, m.pos.lng], {
+            color:
+              markerColor === 'green'
+                ? '#10b981'
+                : markerColor === 'orange'
+                  ? '#f59e0b'
+                  : '#ef4444',
+            fillColor:
+              markerColor === 'green'
+                ? '#10b981'
+                : markerColor === 'orange'
+                  ? '#f59e0b'
+                  : '#ef4444',
+            fillOpacity: 0.8,
+            radius: 8,
+            weight: 2,
+          })
+            .addTo(window.mapInstance)
+            .bindPopup(
+              `<b>${m.location}</b><br>상태: ${m.status}<br>포화도: ${m.fillLevel.toFixed(1)}%`
+            );
+
+          window.mapMarkers.push(marker);
+        });
+      }
+
+      function addAIFeed(title, message, level) {
+        if (!title) return;
+        const statusText = '방금 전';
+        let icon, colorClass;
+        switch (level) {
+          case 'warning':
+            icon = 'alert-triangle';
+            colorClass = 'status-warning';
+            break;
+          case 'danger':
+            icon = 'siren';
+            colorClass = 'status-danger';
+            break;
+          case 'info':
+          default:
+            icon = 'info';
+            colorClass = 'status-operational';
+            break;
+        }
+        // AI 피드에 첫 번째 아이템이 추가될 때 빈 상태 메시지 제거
+        const emptyState = elements.aiFeed.querySelector('p.text-gray-500');
+        if (emptyState) {
+          elements.aiFeed.innerHTML = '';
+          elements.aiFeed.classList.remove(
+            'flex',
+            'items-center',
+            'justify-center'
+          );
+          elements.aiFeed.classList.add('space-y-4');
+        }
+
+        const feedItem = `<div class="border-l-4 ${level === 'danger' ? 'border-red-500' : level === 'warning' ? 'border-yellow-500' : 'border-cyan-500'} pl-4 py-2"><div class="flex items-start gap-3"><i data-lucide="${icon}" class="w-5 h-5 mt-1 ${colorClass} flex-shrink-0"></i><div class="flex-1"><p class="font-bold text-sub">[${title}]</p><p class="text-sm text-sub">${message}</p><p class="text-xs text-light  mt-1">${statusText}</p></div></div></div>`;
+        if (elements.aiFeed.children.length > 20)
+          elements.aiFeed.removeChild(elements.aiFeed.lastChild);
+        elements.aiFeed.insertAdjacentHTML('afterbegin', feedItem);
+        lucide.createIcons();
+      }
+
+      function updateFillLevelList() {
+        const sortedMachines = [...machines].sort(
+          (a, b) => b.fillLevel - a.fillLevel
+        );
+        elements.fillLevelList.innerHTML = sortedMachines
+          .map((m) => {
+            let barColor = 'bg-green-500';
+            if (m.fillLevel > 85) barColor = 'bg-red-500';
+            else if (m.fillLevel > 70) barColor = 'bg-orange-500';
+
+            return `<div><div class="flex justify-between items-center mb-1 text-sm"><span class="font-medium text-sub">${m.location}</span><span class=" text-light">${m.fillLevel.toFixed(1)}%</span></div><div class="w-full fill-bar-bg rounded-full h-2"><div class="fill-bar rounded-full ${barColor}" style="width: ${m.fillLevel}%;"></div></div></div>`;
+          })
+          .join('');
+      }
+
+      function updateLeaderboard() {
+        const users = [
+          { name: '김*민', points: 12540 },
+          { name: '이*서', points: 11820 },
+          { name: '박*준', points: 10560 },
+          { name: '최*윤', points: 9870 },
+          { name: '정*현', points: 9120 },
+        ].sort((a, b) => b.points - a.points);
+
+        elements.leaderboard.innerHTML = users
+          .map((user, index) => {
+            let icon = 'award',
+              color = 'text-gray-400';
+            if (index === 0) {
+              icon = 'trophy';
+              color = 'text-yellow-400';
+            }
+            if (index === 1) {
+              color = 'text-gray-300';
+            }
+            if (index === 2) {
+              color = 'text-orange-400';
+            }
+
+            return `<div class="flex items-center justify-between p-2 kpi-bg rounded-lg"><div class="flex items-center gap-3"><i data-lucide="${icon}" class="w-5 h-5 ${color}"></i><span class="font-medium text-sub">${user.name}</span></div><span class="font-semibold text-light">${user.points.toLocaleString()} P</span></div>`;
+          })
+          .join('');
+        lucide.createIcons();
+      }
+
+      function updateESGMetrics() {
+        let totalCO2Reduction = 0;
+        Object.keys(RECYCLABLES).forEach((key) => {
+          totalCO2Reduction +=
+            machines.reduce((sum, m) => sum + m.collections[key], 0) *
+            RECYCLABLES[key].co2_factor;
+        });
+
+        elements.co2Reduction.textContent = `${totalCO2Reduction.toLocaleString(undefined, { maximumFractionDigits: 0 })} kg`;
+        elements.treeEffect.textContent = `${Math.floor(totalCO2Reduction / 22).toLocaleString()} 그루`;
+        elements.totalPoints.textContent = `${accumulatedPoints.toLocaleString()} P`;
+        elements.citizenCount.textContent = `${citizenCount.toLocaleString()} 명`;
+        elements.donatedPoints.textContent = `${donatedPoints.toLocaleString()} P`;
+
+        const currentProgress = (totalCO2Reduction / CO2_GOAL) * 100;
+        elements.co2GoalPercent.textContent = `${currentProgress.toFixed(1)}%`;
+        elements.co2GoalBar.style.width = `${Math.min(100, currentProgress)}%`;
+
+        const dayOfYear =
+          (new Date() - new Date(new Date().getFullYear(), 0, 0)) /
+          1000 /
+          60 /
+          60 /
+          24;
+        const predictedAchievement =
+          (((totalCO2Reduction / dayOfYear) * 365) / CO2_GOAL) * 100;
+        elements.co2GoalPrediction.textContent = `AI 예측: 연말까지 ${predictedAchievement.toFixed(1)}% 달성 예상`;
+      }
+
+      function initializeCharts() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const gridColor = isDark
+          ? 'rgba(255, 255, 255, 0.05)'
+          : 'rgba(0, 0, 0, 0.05)';
+        const tickColor = isDark ? '#9CA3AF' : '#495057';
+
+        if (elements.todayCollectionChart) {
+          todayCollectionChart = new Chart(
+            elements.todayCollectionChart.getContext('2d'),
+            {
+              type: 'line',
+              data: {
+                labels: [],
+                datasets: [
+                  {
+                    label: '수거량 (kg)',
+                    data: [],
+                    borderColor: '#26C6DA',
+                    backgroundColor: '#26C6DA30',
+                    fill: true,
+                    tension: 0.4,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor },
+                  },
+                  x: {
+                    type: 'time',
+                    time: { unit: 'hour' },
+                    grid: { display: false },
+                    ticks: { color: tickColor },
+                  },
+                },
+              },
+            }
+          );
+        }
+        if (elements.collectionByTypeChart) {
+          collectionByTypeChart = new Chart(
+            elements.collectionByTypeChart.getContext('2d'),
+            {
+              type: 'bar',
+              data: {
+                labels: Object.values(RECYCLABLES).map((r) => r.name),
+                datasets: [
+                  {
+                    label: '수거량 (kg)',
+                    data: [],
+                    backgroundColor: Object.values(RECYCLABLES).map(
+                      (r) => r.color
+                    ),
+                    borderRadius: 4,
+                  },
+                ],
+              },
+              options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor },
+                  },
+                  y: { grid: { display: false }, ticks: { color: tickColor } },
+                },
+              },
+            }
+          );
+        }
+      }
+
+      function updateTodayCollectionChart() {
+        if (!todayCollectionChart) return;
+        const now = new Date();
+        const totalKg = machines.reduce(
+          (sum, m) =>
+            sum + Object.values(m.collections).reduce((s, c) => s + c, 0),
+          0
+        );
+
+        const data = todayCollectionChart.data.datasets[0].data;
+        data.push({ x: now.getTime(), y: totalKg });
+        if (data.length > 50) data.shift();
+        todayCollectionChart.update('quiet');
+      }
+
+      function updateCollectionByTypeChart() {
+        if (!collectionByTypeChart) return;
+        const totals = Object.keys(RECYCLABLES).map((key) =>
+          machines.reduce((sum, m) => sum + m.collections[key], 0)
+        );
+        collectionByTypeChart.data.datasets[0].data = totals;
+        collectionByTypeChart.update();
+      }
+
+      function generateReportHTML(type) {
+        const now = new Date();
+        let briefing, events, stats, insights, recommendations;
+
+        if (type === '일간') {
+          briefing = `<strong>${now.toLocaleDateString('ko-KR')}</strong> 일일 운영 보고서입니다. 총 <strong>${TOTAL_MACHINES}대</strong>의 수거기 중 <strong>${elements.operationalMachines.textContent}대</strong>가 정상 작동 중입니다. 오늘 하루 동안 <strong>${(Math.random() * 100 + 50).toFixed(1)}kg</strong>의 재활용품이 수거되었습니다.`;
+          events = machines
+            .filter((m) => m.status !== '정상')
+            .slice(0, 5)
+            .map(
+              (m) =>
+                `<tr><td>${m.last_event}</td><td>${m.location}</td><td><span class="${m.status === '오류' ? 'status-danger' : 'status-warning'}">${m.status}</span></td><td colspan="2">${m.status === '오류' ? '시스템 오류 감지. 긴급 조치 필요.' : '센서 점검 필요 알림 발생.'}</td></tr>`
+            )
+            .join('');
+          stats = `<ul><li>총 수거량: <strong>${(machines.reduce((sum, m) => sum + Object.values(m.collections).reduce((s, c) => s + c, 0), 0) / 1000).toFixed(2)}톤</strong></li><li>포인트 지급: <strong>${(accumulatedPoints - 1450000).toLocaleString()} P</strong></li></ul>`;
+          insights = [
+            `<strong>최다 수거 지역:</strong> AI 분석 결과, 오늘 가장 많은 재활용품이 수거된 지역은 <strong>성남동</strong> 일대입니다.`,
+            `<strong>포화 임박 수거기:</strong> <strong>${machines.sort((a, b) => b.fillLevel - a.fillLevel)[0].location}</strong>의 포화도가 <strong>${machines.sort((a, b) => b.fillLevel - a.fillLevel)[0].fillLevel.toFixed(1)}%</strong>로, 수거가 필요합니다.`,
+          ];
+          recommendations = [
+            `<span class="tag" style="background-color: #FFA726;">권장</span> 포화 임박 수거기들에 대한 수거팀 배치를 권장합니다.`,
+            `<span class="tag" style="background-color: #26C6DA;">정보</span> 내일은 비가 예보되어 있어, 재활용품 수거량이 평소보다 15% 감소할 것으로 예측됩니다.`,
+          ];
+        } else if (type === '주간') {
+          briefing = `지난 한 주간의 운영 보고서입니다. 총 수거량은 <strong>${((machines.reduce((sum, m) => sum + Object.values(m.collections).reduce((s, c) => s + c, 0), 0) * 7) / 1000).toFixed(2)}톤</strong>으로, 전주 대비 <strong>5.2% 증가</strong>했습니다. 시민 참여율 또한 꾸준히 상승하고 있습니다.`;
+          events = machines
+            .filter((m) => m.failure_prob > 0.5)
+            .slice(0, 3)
+            .map(
+              (m) =>
+                `<tr><td>${m.last_event}</td><td>${m.location}</td><td><span class="status-warning">고장 예측</span></td><td colspan="2">AI가 ${m.location}의 고장 가능성을 <strong>${(m.failure_prob * 100).toFixed(0)}%</strong>로 예측했습니다. 예방 점검이 필요합니다.</td></tr>`
+            )
+            .join('');
+          stats = `<ul><li>주간 총 수거량: <strong>${((machines.reduce((sum, m) => sum + Object.values(m.collections).reduce((s, c) => s + c, 0), 0) * 7) / 1000).toFixed(2)}톤</strong></li><li>품목별 수거량 (PET/캔/종이/플라스틱): <strong>${Object.values(
+            RECYCLABLES
+          )
+            .map((r) =>
+              (
+                (machines.reduce(
+                  (sum, m) => sum + m.collections[r.name.toLowerCase()],
+                  0
+                ) *
+                  7) /
+                1000
+              ).toFixed(2)
+            )
+            .join(' / ')} 톤</strong></li></ul>`;
+          insights = [
+            `<strong>수거량 집중 요일:</strong> 데이터 분석 결과, 재활용품 수거는 <strong>주말(토, 일)</strong>에 40% 이상 집중되는 패턴을 보입니다.`,
+            `<strong>가장 많이 수거된 품목:</strong> 지난 주 가장 많이 수거된 품목은 <strong>PET</strong>로, 전체의 <strong>35%</strong>를 차지했습니다.`,
+          ];
+          recommendations = [
+            `<span class="tag" style="background-color: #6610f2;">전략</span> 주말 수거 인력 및 차량을 15% 증원하여 운영 효율을 높이는 것을 제안합니다.`,
+            `<span class="tag" style="background-color: #17a2b8;">캠페인</span> PET 외 다른 품목의 재활용률을 높이기 위한 시민 참여 캠페인을 고려해볼 시점입니다.`,
+          ];
+        } else {
+          // ESG
+          const totalCO2Reduction = machines.reduce(
+            (sum, m) =>
+              sum +
+              Object.values(m.collections).reduce(
+                (s, c, i) => s + c * Object.values(RECYCLABLES)[i].co2_factor,
+                0
+              ),
+            0
+          );
+          briefing = `지난 한 달간의 ESG 성과 보고서입니다. 총 <strong>${totalCO2Reduction.toLocaleString(undefined, { maximumFractionDigits: 0 })} kg</strong>의 탄소 배출량을 저감했으며, 이는 나무 <strong>${Math.floor(totalCO2Reduction / 22).toLocaleString()} 그루</strong>를 심은 효과와 같습니다. 시민들의 적극적인 참여로 사회적 가치 또한 꾸준히 창출되고 있습니다.`;
+          events = '';
+          stats = `<ul><li>탄소 저감량: <strong>${elements.co2Reduction.textContent}</strong></li><li>시민 참여: <strong>${elements.citizenCount.textContent}</strong></li><li>수거기 운영 효율: <strong>${elements.opEfficiency.textContent}</strong></li></ul>`;
+          insights = [
+            `<strong>탄소 저감 기여도 1위 품목:</strong> <strong>캔</strong>의 재활용이 전체 탄소 저감량의 <strong>45%</strong>를 차지하여 가장 효과적이었습니다.`,
+            `<strong>시민 참여율 상위 지역:</strong> <strong>신정동, 옥교동</strong> 주민들의 참여율이 타 지역 대비 20% 이상 높게 나타났습니다.`,
+          ];
+          recommendations = [
+            `<span class="tag" style="background-color: #6f42c1;">전략</span> 캔 수거율을 높이기 위한 프로모션을 진행하여 탄소 저감 효과를 극대화하는 것을 제안합니다.`,
+            `<span class="tag" style="background-color: #26C6DA;">파트너십</span> 참여율이 높은 지역의 주민센터와 협력하여 재활용 우수 사례를 홍보하고, 타 지역으로 확산하는 방안을 모색하십시오.`,
+          ];
+        }
+
+        return `
+            <h3>종합 브리핑</h3><p>${briefing}</p>
+            <h3>주요 이벤트</h3><table><thead><tr><th>발생 시각</th><th>위치</th><th>유형</th><th colspan="2">상세 내용</th></tr></thead><tbody>${events || '<tr><td colspan="4" class="text-center text-light">해당 기간에 주요 이벤트가 없습니다.</td></tr>'}</tbody></table>
+            <h3>주요 통계</h3>${stats}
+            <h3>AI 분석 및 인사이트</h3><ul>${insights.map((i) => `<li>${i}</li>`).join('')}</ul>
+            <h3>권장 조치사항</h3><ol>${recommendations.map((r) => `<li>${r}</li>`).join('')}</ol>
+        `;
+      }
+
+      // Theme toggle functionality removed since there's no theme-toggle button in the UI
+      // Event listeners with null checks
+      if (elements.openReportMenuBtn) {
+        elements.openReportMenuBtn.addEventListener('click', () => {
+          if (elements.reportMenu) {
+            elements.reportMenu.classList.toggle('hidden');
+          }
+        });
+      }
+
+      document.addEventListener('click', (event) => {
+        if (elements.openReportMenuBtn && elements.reportMenu) {
+          if (
+            !elements.openReportMenuBtn.contains(event.target) &&
+            !elements.reportMenu.contains(event.target)
+          ) {
+            elements.reportMenu.classList.add('hidden');
+          }
+        }
+      });
+
+      document.querySelectorAll('.report-menu-item').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const type = e.target.dataset.reportType;
+          if (elements.reportModalTitle) {
+            elements.reportModalTitle.textContent = `${type} AI 보고서`;
+          }
+          if (elements.reportModalBody) {
+            elements.reportModalBody.innerHTML = generateReportHTML(type);
+          }
+          if (elements.reportModal) {
+            elements.reportModal.classList.remove('hidden');
+          }
+          if (elements.reportMenu) {
+            elements.reportMenu.classList.add('hidden');
+          }
+        });
+      });
+
+      if (elements.closeReportModalBtn) {
+        elements.closeReportModalBtn.addEventListener('click', () => {
+          if (elements.reportModal) {
+            elements.reportModal.classList.add('hidden');
+          }
+        });
+      }
+      
+      // 보고서 다운로드 (PDF 인쇄) 이벤트
+      if (elements.reportDownloadBtn) {
+        elements.reportDownloadBtn.addEventListener('click', function() {
+          try {
+            // 인쇄 전에 모달이 열려있는지 확인
+            if (elements.reportModal && elements.reportModal.classList.contains('hidden')) {
+              alert('보고서를 먼저 생성해주세요.');
+              return;
+            }
+            
+            // 인쇄 실행
+            window.print();
+          } catch (error) {
+            alert('인쇄 기능에 오류가 발생했습니다.');
+          }
+        });
+      }
+
+      window.onload = () => {
+        window.addEventListener('resize', () => {
+          [todayCollectionChart, collectionByTypeChart].forEach((chart) => {
+            if (chart && chart.canvas) {
+              try {
+                chart.resize();
+              } catch (e) {
+                console.error('Error resizing chart: ', e, chart);
+              }
+            }
+          });
+        });
+
+        initializeMachines();
+        initializeCharts();
+        initMap();
+        updateUI();
+        setInterval(simulateDataUpdate, 2000);
+
+        // 초기 AI 피드 메시지 추가
+        setTimeout(() => {
+          addAIFeed(
+            '시스템 시작',
+            '스마트 재활용 분리수거 시스템이 초기화되었습니다.',
+            'info'
+          );
+          setTimeout(() => {
+            addAIFeed(
+              '데이터 수집',
+              '수거기 상태 데이터를 실시간으로 수집하고 있습니다.',
+              'info'
+            );
+          }, 2000);
+        }, 1000);
+      };
+    </script>
+  </body>
+</html>

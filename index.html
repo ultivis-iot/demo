@@ -1,5 +1,5 @@
 <!-- index.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -7,11 +7,11 @@
     <title>Ultivis - Demo Collection</title>
     <link rel="icon" type="image/x-icon" href="./assets/favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <style>
       @font-face {
-        font-family: "SUIT-Regular";
-        src: url("../SUIT-Regular.woff2") format("woff2");
+        font-family: 'SUIT-Regular';
+        src: url('../SUIT-Regular.woff2') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
@@ -34,8 +34,13 @@
       }
 
       body {
-        font-family: "SUIT-Regular", -apple-system, BlinkMacSystemFont,
-          "Segoe UI", Roboto, sans-serif;
+        font-family:
+          'SUIT-Regular',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
         font-weight: 400;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -50,6 +55,8 @@
         border: 1px solid var(--color-grayscale-700);
         transition: all var(--transition-normal);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
       .demo-card:hover {
@@ -66,7 +73,7 @@
 
       .demo-card-content {
         padding: 1.5rem;
-        height: 100%;
+        height: 250px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -86,6 +93,27 @@
         line-height: 1.5;
         margin-bottom: 1rem;
         flex-grow: 1;
+        max-height: 100px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+      }
+
+      .demo-description::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .demo-description::-webkit-scrollbar-track {
+        background: var(--color-grayscale-700);
+        border-radius: 2px;
+      }
+
+      .demo-description::-webkit-scrollbar-thumb {
+        background: var(--color-grayscale-500);
+        border-radius: 2px;
+      }
+
+      .demo-description::-webkit-scrollbar-thumb:hover {
+        background: var(--color-grayscale-300);
       }
 
       .demo-badge {
@@ -100,6 +128,41 @@
         letter-spacing: 0.025em;
       }
 
+      .demo-preview {
+        width: 1920px;
+        height: 1080px;
+        border: none;
+        border-radius: 0;
+        pointer-events: none;
+        transform: scale(0.192);
+        transform-origin: top left;
+        margin-bottom: -886px;
+        margin-left: 0px;
+      }
+
+      .demo-preview-container {
+        width: 100%;
+        height: 194px;
+        overflow: hidden;
+        background: #f8f9fa;
+        position: relative;
+      }
+
+      .demo-preview-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(255, 255, 255, 0.1) 100%
+        );
+        z-index: 1;
+        pointer-events: none;
+      }
+
       .hero-section {
         text-align: center;
         margin-bottom: 3rem;
@@ -108,7 +171,11 @@
       .hero-title {
         font-size: 3rem;
         font-weight: 700;
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        background: linear-gradient(
+          135deg,
+          var(--color-primary) 0%,
+          var(--color-primary-dark) 100%
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -118,7 +185,7 @@
       .hero-subtitle {
         font-size: 1.25rem;
         color: var(--color-grayscale-300);
-        max-width: 600px;
+        max-width: 800px;
         margin: 0 auto;
       }
 
@@ -133,7 +200,7 @@
         text-align: center;
         color: var(--color-grayscale-300);
         font-size: 0.875rem;
-        padding: 2rem;
+        padding: 1rem;
         border-top: 1px solid var(--color-grayscale-700);
         background: var(--color-grayscale-1000);
         border-radius: var(--radius-lg);
@@ -144,27 +211,36 @@
         .hero-title {
           font-size: 2rem;
         }
-        
+
         .grid-container {
           grid-template-columns: 1fr;
           gap: 1rem;
         }
-        
+
         .demo-card-content {
           padding: 1.25rem;
         }
       }
     </style>
   </head>
-  
+
   <body class="p-6 md:p-8 lg:p-12">
-    <div class="max-w-6xl mx-auto">
+    <div class="mx-auto max-w-6xl">
       <!-- Hero Section -->
       <div class="hero-section">
-        <h1 class="hero-title">Ultivis Demo Collection</h1>
+        <h1 class="hero-title flex items-center justify-center">
+          <img
+            src="./assets/favicon.png"
+            alt="Ultivis Logo"
+            class="mr-4 h-16 w-16"
+          />
+          Ultivis Demo Collection
+        </h1>
         <p class="hero-subtitle">
-          다양한 AI 기반 대시보드와 관제 시스템의 데모를 확인해보세요.
-          실시간 모니터링부터 통합 관제까지 다양한 솔루션을 체험할 수 있습니다.
+          Explore various AI-powered dashboards and control systems. Experience diverse solutions from real-time monitoring to integrated control systems.
+          <br />
+          다양한 AI 기반 대시보드와 관제 시스템의 데모를 확인해보세요. 실시간
+          모니터링부터 통합 관제까지 다양한 솔루션을 체험할 수 있습니다.
         </p>
       </div>
 
@@ -173,18 +249,28 @@
         <!-- Demo 1: Smart School Dashboard -->
         <div class="demo-card">
           <a href="./pages/01.html" class="demo-link">
+            <div class="demo-preview-container">
+              <iframe src="./pages/01.html" class="demo-preview"></iframe>
+              <div class="demo-preview-overlay"></div>
+            </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">Smart School Dashboard / 스마트 스쿨 통합 대시보드</h3>
+                <h3 class="demo-title">
+                  Smart School Dashboard
+                </h3>
                 <p class="demo-description">
-                  Comprehensive smart school integrated dashboard for monitoring and managing overall facility status. View real-time sensor data, energy usage, security systems and more at a glance.
-                  <br/><br/>
-                  스마트 스쿨 통합 대시보드로 학교 시설의 전반적인 상태를 모니터링하고 관리할 수 있습니다. 실시간 센서 데이터, 에너지 사용량, 보안 시스템 등을 한눈에 확인하세요.
+                  Comprehensive smart school integrated dashboard for monitoring
+                  and managing overall facility status. View real-time sensor
+                  data, energy usage, security systems and more at a glance.
+                  <br /><br />
+                  스마트 스쿨 통합 대시보드로 학교 시설의 전반적인 상태를
+                  모니터링하고 관리할 수 있습니다. 실시간 센서 데이터, 에너지
+                  사용량, 보안 시스템 등을 한눈에 확인하세요.
                 </p>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="demo-badge">English / 한국어</span>
-                <span class="text-xs text-gray-400">Interactive Dashboard</span>
+              <div class="flex items-center justify-between">
+                <span class="demo-badge">English</span>
+                <span class="text-gray-400 text-xs">Interactive Dashboard</span>
               </div>
             </div>
           </a>
@@ -193,18 +279,29 @@
         <!-- Demo 2: AI 펌프카 -->
         <div class="demo-card">
           <a href="./pages/02.html" class="demo-link">
+            <div class="demo-preview-container">
+              <iframe src="./pages/02.html" class="demo-preview"></iframe>
+              <div class="demo-preview-overlay"></div>
+            </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">AI Pump Truck Integrated Control Dashboard / AI 펌프카 통합 관제 대시보드</h3>
+                <h3 class="demo-title">
+                  AI 펌프카 통합관제 대시보드
+                </h3>
                 <p class="demo-description">
-                  AI-based pump truck control system for integrated monitoring of real-time equipment status, location information, and work progress. Enables predictive analysis for proactive maintenance and efficient operation management.
-                  <br/><br/>
-                  AI 기반 펌프카 관제 시스템으로 장비의 실시간 상태, 위치 정보, 작업 현황을 통합 모니터링합니다. 예측 분석을 통한 사전 점검과 효율적인 운영 관리가 가능합니다.
+                  AI-based pump truck control system for integrated monitoring
+                  of real-time equipment status, location information, and work
+                  progress. Enables predictive analysis for proactive
+                  maintenance and efficient operation management.
+                  <br /><br />
+                  AI 기반 펌프카 관제 시스템으로 장비의 실시간 상태, 위치 정보,
+                  작업 현황을 통합 모니터링합니다. 예측 분석을 통한 사전 점검과
+                  효율적인 운영 관리가 가능합니다.
                 </p>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="demo-badge">English / 한국어</span>
-                <span class="text-xs text-gray-400">Real-time Monitoring</span>
+              <div class="flex items-center justify-between">
+                <span class="demo-badge">한국어</span>
+                <span class="text-gray-400 text-xs">Real-time Monitoring</span>
               </div>
             </div>
           </a>
@@ -213,18 +310,29 @@
         <!-- Demo 3: AI 유압 브레이커 -->
         <div class="demo-card">
           <a href="./pages/03.html" class="demo-link">
+            <div class="demo-preview-container">
+              <iframe src="./pages/03.html" class="demo-preview"></iframe>
+              <div class="demo-preview-overlay"></div>
+            </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">AI Hydraulic Breaker Integrated Control Dashboard / AI 유압 브레이커 통합 관제 대시보드</h3>
+                <h3 class="demo-title">
+                  AI 유압브레이커 통합 관제 대시보드
+                </h3>
                 <p class="demo-description">
-                  AI-based integrated control system for hydraulic breaker equipment. Supports smart equipment operation including equipment status diagnosis, work efficiency analysis, and maintenance schedule management.
-                  <br/><br/>
-                  유압 브레이커 장비의 AI 기반 통합 관제 시스템입니다. 장비 상태 진단, 작업 효율성 분석, 유지보수 일정 관리 등 스마트한 장비 운영을 지원합니다.
+                  AI-based integrated control system for hydraulic breaker
+                  equipment. Supports smart equipment operation including
+                  equipment status diagnosis, work efficiency analysis, and
+                  maintenance schedule management.
+                  <br /><br />
+                  유압 브레이커 장비의 AI 기반 통합 관제 시스템입니다. 장비 상태
+                  진단, 작업 효율성 분석, 유지보수 일정 관리 등 스마트한 장비
+                  운영을 지원합니다.
                 </p>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="demo-badge">English / 한국어</span>
-                <span class="text-xs text-gray-400">AI Analytics</span>
+              <div class="flex items-center justify-between">
+                <span class="demo-badge">한국어</span>
+                <span class="text-gray-400 text-xs">AI Analytics</span>
               </div>
             </div>
           </a>
@@ -233,18 +341,61 @@
         <!-- Demo 4: GASTRON 5대 가스 관제 -->
         <div class="demo-card">
           <a href="./pages/04.html" class="demo-link">
+            <div class="demo-preview-container">
+              <iframe src="./pages/04.html" class="demo-preview"></iframe>
+              <div class="demo-preview-overlay"></div>
+            </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">GASTRON Real-time Integrated Gas Control Dashboard / GASTRON 5대 가스 실시간 통합 관제 대시보드</h3>
+                <h3 class="demo-title">
+                  5대 가스 실시간 통합 관제 대시보드
+                </h3>
                 <p class="demo-description">
-                  AI-based automatic hazard detection system for real-time monitoring of 5 gases (combustible gas, carbon monoxide, hydrogen sulfide, oxygen, ammonia). Provides sensor status, alarm management, and AI analysis report functions.
-                  <br/><br/>
-                  AI 기반 자동 위험 감지 시스템으로 5대 가스(가연성가스, 일산화탄소, 황화수소, 산소, 암모니아)를 실시간 모니터링합니다. 센서 상태, 알람 관리, AI 분석 리포트 기능을 제공합니다.
+                  AI-based automatic hazard detection system for real-time
+                  monitoring of 5 gases (combustible gas, carbon monoxide,
+                  hydrogen sulfide, oxygen, ammonia). Provides sensor status,
+                  alarm management, and AI analysis report functions.
+                  <br /><br />
+                  AI 기반 자동 위험 감지 시스템으로 5대 가스(가연성가스,
+                  일산화탄소, 황화수소, 산소, 암모니아)를 실시간 모니터링합니다.
+                  센서 상태, 알람 관리, AI 분석 리포트 기능을 제공합니다.
                 </p>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="demo-badge">English / 한국어</span>
-                <span class="text-xs text-gray-400">Gas Monitoring</span>
+              <div class="flex items-center justify-between">
+                <span class="demo-badge">한국어</span>
+                <span class="text-gray-400 text-xs">Gas Monitoring</span>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Demo 5: 스마트 재활용 분리수거 대시보드 -->
+        <div class="demo-card">
+          <a href="./pages/05.html" class="demo-link">
+            <div class="demo-preview-container">
+              <iframe src="./pages/05.html" class="demo-preview"></iframe>
+              <div class="demo-preview-overlay"></div>
+            </div>
+            <div class="demo-card-content">
+              <div>
+                <h3 class="demo-title">
+                  울산 중구 스마트재활용 분리수거 대시보드
+                </h3>
+                <p class="demo-description">
+                  AI-based smart waste collection management system for
+                  real-time monitoring of recycling collection machines in Ulsan
+                  Jung-gu. Features include collection status tracking, fill
+                  level monitoring, predictive maintenance, and comprehensive
+                  reporting.
+                  <br /><br />
+                  울산 중구 지역의 재활용 분리수거함을 실시간 모니터링하는 AI
+                  기반 스마트 수거 관리 시스템입니다. 수거 현황 추적, 충전도
+                  모니터링, 예측 정비, 종합 리포트 기능을 제공합니다.
+                </p>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="demo-badge">한국어</span>
+                <span class="text-gray-400 text-xs">Waste Management</span>
               </div>
             </div>
           </a>
@@ -253,8 +404,15 @@
 
       <!-- Footer Note -->
       <div class="footer-note">
-        <p>💡 각 데모는 실제 운영 환경을 시뮬레이션한 샘플 데이터를 사용합니다.</p>
-        <p class="mt-2 text-xs">더 많은 데모가 곧 추가될 예정입니다.</p>
+        <p>
+          💡 Each demo uses sample data that simulates real operating
+          environments.
+          <br /1
+          각 데모는 실제 운영 환경을 시뮬레이션한 샘플 데이터를 사용합니다.
+        </p>
+        <p class="mt-2 text-xs">
+          More demos will be added soon. / 더 많은 데모가 곧 추가될 예정입니다.
+        </p>
       </div>
     </div>
   </body>
