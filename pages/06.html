@@ -1,0 +1,1741 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>재생에너지 통합관제 서비스</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.png" />
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../components/dashboard-components.css" />
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+      /* Project-specific styles */
+      .asset-item.active {
+        border-width: 2px;
+        border-color: #00529b;
+        background-color: #e6f0f9;
+      }
+      .tab-button.active {
+        border-color: #00529b;
+        color: #00529b;
+        background-color: #e6f0f9;
+      }
+      #chat-container {
+        scroll-behavior: smooth;
+      }
+      /* Architecture Diagram Styles */
+      .arch-box {
+        border: 1px solid #e5e7eb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        background-color: #f9fafb;
+      }
+      .arch-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0.5rem;
+        color: #9ca3af;
+      }
+    </style>
+    <style>
+      /* 04.html style compatibility */
+      #sidebar {
+        transition:
+          transform 0.3s ease-in-out,
+          margin-left 0.3s ease-in-out;
+        transform: translateX(0);
+        width: 280px;
+        flex-shrink: 0;
+      }
+      #sidebar.sidebar-closed {
+        transform: translateX(-100%);
+        margin-left: -280px;
+      }
+      .main-content {
+        transition: margin-left 0.3s ease-in-out;
+      }
+      /* Sidebar Item Styles */
+      .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        color: #000000;
+        transition:
+          background-color 0.2s,
+          color 0.2s;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+      .sidebar-item:hover {
+        color: #111827;
+        background-color: #f3f4f6;
+      }
+      .active-sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        background-color: #e5f1ff;
+        color: #0075ff;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+
+      /* Hidden class */
+      .hidden {
+        display: none !important;
+      }
+
+      /* Content grid height fix */
+      .content-grid {
+        flex: none !important; /* flex: 1 제거 */
+      }
+
+      /* Widget height consistency */
+      .widget {
+        min-height: auto;
+        height: auto;
+      }
+
+      /* Chart container full width */
+      .chart-container {
+        position: relative;
+        width: 100%;
+      }
+
+      /* 고정 높이 차트 컨테이너 */
+      .chart-container.chart-fixed-height {
+        height: 256px !important; /* h-64와 동일한 고정 높이 */
+        max-height: 256px !important;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .chart-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100%;
+        max-height: 100% !important;
+      }
+
+      /* 그리드 내 모든 차트 컨테이너 제한 */
+      .grid .chart-container {
+        height: 256px !important; /* h-64에 대응 */
+        max-height: 256px !important;
+        overflow: hidden;
+      }
+
+      .grid .chart-container canvas {
+        height: 256px !important;
+        max-height: 256px !important;
+      }
+    </style>
+  </head>
+  <body class="dashboard-layout" data-theme="default">
+    <!-- Header -->
+    <header class="fixed left-0 right-0 top-0 z-50 border-b bg-white shadow-2">
+      <div
+        class="ease flex max-h-16 w-full flex-col justify-start overflow-hidden px-5 transition-[max-height] duration-150 sm:flex-row sm:items-center sm:justify-between sm:overflow-visible sm:border-none"
+      >
+        <div class="my-auto flex min-h-16 items-center gap-3 sm:gap-4">
+          <button
+            id="sidebar-toggle-btn"
+            aria-controls="sidebar"
+            class="stroke-gray-600"
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="aspect-square w-6 shrink-0"
+            >
+              <path
+                id="sidebar-toggle-icon-close"
+                d="M20 24L12 16L20 8"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                id="sidebar-toggle-icon-open"
+                d="M6 8H26M6 16H26M6 24H26"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="hidden"
+              ></path>
+            </svg>
+          </button>
+          <a class="block" href="../index.html">
+            <img
+              src="../assets/logo-nav.png"
+              alt="Logo"
+              class="max-h-16 w-auto"
+            />
+          </a>
+        </div>
+        <ul
+          class="relative z-50 my-auto flex min-h-16 w-full justify-center gap-2 sm:border-none"
+        >
+          <!-- Navigation items would go here if needed -->
+        </ul>
+      </div>
+    </header>
+
+    <div
+      style="display: flex; padding-top: 64px; min-height: calc(100vh - 64px)"
+    >
+      <!-- New Sidebar -->
+      <aside
+        id="sidebar"
+        class="z-40 my-5 ml-5 rounded-2xl border border-solid border-grayscale-700 bg-white shadow-lg"
+      >
+        <div class="no-scrollbar flex h-full flex-col overflow-y-auto">
+          <nav id="lnb" class="p-4 text-lg font-medium">
+            <ul class="mt-[1px] flex flex-col gap-1.5">
+              <li>
+                <div
+                  id="nav-dashboard"
+                  data-page-id="dashboard"
+                  title="종합 현황"
+                  class="active-sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    ></path>
+                  </svg>
+                  <span>종합 현황</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-asset-analysis"
+                  data-page-id="asset-analysis"
+                  title="자산 상세 분석"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17.218 10.395l-5.138-2.202a1 1 0 00-1.16 0l-5.138 2.202a1 1 0 00-.582.91v5.39a1 1 0 00.582.91l5.138 2.202a1 1 0 001.16 0l5.138-2.202a1 1 0 00.582-.91v-5.39a1 1 0 00-.582-.91z"
+                    ></path>
+                  </svg>
+                  <span>자산 상세 분석</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-power-forecast"
+                  data-page-id="power-forecast"
+                  title="발전량 예측"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    ></path>
+                  </svg>
+                  <span>발전량 예측</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-predictive-maintenance"
+                  data-page-id="predictive-maintenance"
+                  title="AI 예지보전"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    ></path>
+                  </svg>
+                  <span>AI 예지보전</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-ess-management"
+                  data-page-id="ess-management"
+                  title="ESS 통합관리"
+                  class="sidebar-item"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-battery-charging-icon lucide-battery-charging"
+                  >
+                    <path d="m11 7-3 5h4l-3 5" />
+                    <path
+                      d="M14.856 6H16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.935"
+                    />
+                    <path d="M22 14v-4" />
+                    <path d="M5.14 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.936" />
+                  </svg>
+                  <span>ESS 통합관리</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-energy-savings"
+                  data-page-id="energy-savings"
+                  title="에너지 절감"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 6v-1m0-1V4m0 2.01V5M12 20v-1m0 1v.01M12 18v-1m0-1v-1m-4-1a4 4 0 118 0 4 4 0 01-8 0z"
+                    ></path>
+                  </svg>
+                  <span>에너지 절감</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-environmental-safety"
+                  data-page-id="environmental-safety"
+                  title="환경 안전 관리"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 11c0 3.517-1.009 6.789-2.756 9.362A1 1 0 0010.244 22h3.512a1 1 0 00.999-1.638C13.009 17.79 12 14.517 12 11zM12 11V3m0 8a3 3 0 100-6 3 3 0 000 6z"
+                    ></path>
+                  </svg>
+                  <span>환경 안전 관리</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-om-optimization"
+                  data-page-id="om-optimization"
+                  title="O&M 최적화"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                  <span>O&M 최적화</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-ai-agent"
+                  data-page-id="ai-agent"
+                  title="AI Agent"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    ></path>
+                  </svg>
+                  <span>AI Agent</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-report"
+                  data-page-id="report"
+                  title="AI 리포트"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    ></path>
+                  </svg>
+                  <span>AI 리포트</span>
+                </div>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="page-title-section" id="header-title">
+            <h2 class="page-title"></h2>
+            <p class="page-description"></p>
+          </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid" id="page-content"></div>
+      </main>
+    </div>
+
+    <!-- Modal for Asset Details -->
+    <div
+      id="modal-container"
+      class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div
+        id="modal-content"
+        class="relative w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl"
+      ></div>
+    </div>
+
+    <script>
+      // 이 스크립트는 대시보드의 모든 기능을 관리하는 자립형 코드입니다.
+      // 페이지 전환, 데이터 시뮬레이션, 차트 렌더링, 인터랙티브 요소 등을 처리합니다.
+      document.addEventListener('DOMContentLoaded', function () {
+        // Sidebar toggle functionality (04.html style)
+        const sidebarToggle = document.getElementById('sidebar-toggle-btn');
+        const sidebar = document.getElementById('sidebar');
+
+        // Sidebar toggle event
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-closed');
+            const iconClose = sidebarToggle.querySelector(
+              '#sidebar-toggle-icon-close'
+            );
+            const iconOpen = sidebarToggle.querySelector(
+              '#sidebar-toggle-icon-open'
+            );
+            iconClose.classList.toggle('hidden');
+            iconOpen.classList.toggle('hidden');
+          });
+        }
+        // --- 1. 핵심 요소 및 상태 관리 ---
+        const pageContent = document.getElementById('page-content');
+        const headerTitle = document.getElementById('header-title');
+        const lnb = document.getElementById('lnb');
+        const modalContainer = document.getElementById('modal-container');
+        const modalContent = document.getElementById('modal-content');
+
+        let chartInstances = {};
+        let mapInstances = {};
+        let modalChartInstance = null;
+        let resizeTimeout;
+
+        // --- 2. 페이지 템플릿 ---
+        // 각 페이지의 HTML 구조를 정의합니다.
+        const pageTemplates = {
+          dashboard: {
+            title: '종합 현황',
+            subtitle:
+              '부산정관에너지의 전체 재생에너지 자산 현황을 모니터링합니다.',
+            content: `
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                       <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-blue-100 rounded-full"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">총 발전용량</p><p class="text-2xl font-bold text-gray-800">150 <span class="text-sm font-normal">MW</span></p></div></div></div>
+                       <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-green-100 rounded-full"><svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">총 가동 자산</p><p class="text-2xl font-bold text-gray-800">48 / 52 <span class="text-sm font-normal">개</span></p></div></div></div>
+                       <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-yellow-100 rounded-full"><svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">오늘의 경고</p><p class="text-2xl font-bold text-gray-800">7 <span class="text-sm font-normal">건</span></p></div></div></div>
+                       <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-purple-100 rounded-full"><svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">오늘의 예측 발전량</p><p class="text-2xl font-bold text-gray-800">2,150 <span class="text-sm font-normal">MWh</span></p></div></div></div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        <div class="lg:col-span-2 p-6 bg-white rounded-lg shadow"><h3 class="text-lg font-semibold text-gray-800">부산 지역 재생에너지 자산 현황</h3><div id="asset-map" class="h-[344px] mt-6 rounded-lg"></div></div>
+                        <div class="p-6 bg-white rounded-lg shadow"><h3 class="text-lg font-semibold text-gray-800">실시간 이벤트 로그</h3><div id="event-log" class="mt-6 space-y-4 overflow-y-auto h-[344px]"></div></div>
+                    </div>`,
+          },
+          'asset-analysis': {
+            title: '자산 상세 분석',
+            subtitle: '개별 자산의 상세 상태와 데이터를 실시간으로 관제합니다.',
+            content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-lg font-semibold text-gray-800">자산 목록</h3>
+                                <div id="asset-list" class="mt-4 space-y-3 overflow-y-auto h-[calc(100vh-18rem)]"></div>
+                            </div>
+                        </div>
+                        <div id="asset-details" class="lg:col-span-3 bg-white p-6 rounded-lg shadow"><div class="flex items-center justify-center h-full text-gray-500">자산 목록에서 분석할 자산을 선택해주세요.</div></div>
+                    </div>`,
+          },
+          'power-forecast': {
+            title: '발전량 예측',
+            subtitle:
+              'AI 모델을 통해 발전량을 예측하고 실제 발전량과 비교 분석합니다.',
+            content: `
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">전체 발전량 예측 및 실적</h3>
+                            <div class="chart-container h-96 mt-4 w-full"><canvas id="power-forecast-detail-chart" style="width: 100% !important; height: 100% !important;"></canvas></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-lg font-semibold text-gray-800">풍력 발전 현황</h3>
+                                <div class="chart-container chart-fixed-height h-64 mt-4 w-full"><canvas id="wind-power-chart"></canvas></div>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-lg font-semibold text-gray-800">태양광 발전 현황</h3>
+                                <div class="chart-container chart-fixed-height h-64 mt-4 w-full"><canvas id="solar-power-chart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>`,
+          },
+          'predictive-maintenance': {
+            title: 'AI 예지보전',
+            subtitle:
+              'AI가 주요 부품의 잔여 수명을 예측하여 선제적인 정비를 지원합니다.',
+            content: `
+                 <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold text-gray-800">주요 부품 잔여 수명(RUL) 예측</h3>
+                        <div class="mt-4 overflow-x-auto">
+                            <table id="rul-table" class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">자산 ID</th><th scope="col" class="px-6 py-3">핵심 부품</th><th scope="col" class="px-6 py-3">잔여 수명(RUL)</th><th scope="col" class="px-6 py-3">예상 교체 시기</th><th scope="col" class="px-6 py-3">상세 분석</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`,
+          },
+          'ess-management': {
+            title: 'ESS 통합관리',
+            subtitle:
+              '에너지 저장 시스템(ESS)의 상태와 운영 현황을 실시간으로 관리합니다.',
+            content: `
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-blue-100 rounded-full"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">총 용량</p><p class="text-2xl font-bold text-gray-800">50 <span class="text-sm font-normal">MWh</span></p></div></div></div>
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-green-100 rounded-full"><svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">현재 SOC</p><p class="text-2xl font-bold text-gray-800">75 <span class="text-sm font-normal">%</span></p></div></div></div>
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-yellow-100 rounded-full"><svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">평균 SOH</p><p class="text-2xl font-bold text-gray-800">98 <span class="text-sm font-normal">%</span></p></div></div></div>
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-purple-100 rounded-full"><svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.657 7.343A8 8 0 0117.657 18.657z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">현재 상태</p><p class="text-2xl font-bold text-gray-800">충전 중</p></div></div></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">ESS 충/방전 현황</h3>
+                            <div class="h-96 mt-4"><canvas id="ess-charge-discharge-chart"></canvas></div>
+                        </div>
+                    </div>`,
+          },
+          'energy-savings': {
+            title: '에너지 절감',
+            subtitle:
+              'AI 기반 제어를 통해 절감된 에너지와 비용을 시각적으로 확인합니다.',
+            content: `
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-green-100 rounded-full"><svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">금월 에너지 절감량</p><p class="text-2xl font-bold text-gray-800">1,250 <span class="text-sm font-normal">MWh</span></p></div></div></div>
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-blue-100 rounded-full"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 6v-1m0-1V4m0 2.01V5M12 20v-1m0 1v.01M12 18v-1m0-1v-1m-4-1a4 4 0 118 0 4 4 0 01-8 0z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">금월 비용 절감액</p><p class="text-2xl font-bold text-gray-800">1.5 <span class="text-sm font-normal">억원</span></p></div></div></div>
+                            <div class="p-5 bg-white rounded-lg shadow"><div class="flex items-center"><div class="p-3 bg-red-100 rounded-full"><svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V8a4 4 0 10-8 0v8m8 0a4 4 0 100-8 4 4 0 000 8zm-4-3a2 2 0 100-4 2 2 0 000 4z"></path></svg></div><div class="ml-4"><p class="text-sm font-medium text-gray-500">탄소 배출 감소량</p><p class="text-2xl font-bold text-gray-800">530 <span class="text-sm font-normal">tCO2e</span></p></div></div></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">월별 에너지 절감량 추이</h3>
+                            <div class="h-96 mt-4"><canvas id="energy-savings-chart"></canvas></div>
+                        </div>
+                    </div>`,
+          },
+          'environmental-safety': {
+            title: '환경 안전 관리',
+            subtitle:
+              'AI Vision과 센서 데이터를 융합하여 발전소 주변의 환경 및 안전을 관리합니다.',
+            content: `
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">조류 충돌 방지 시스템</h3>
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="md:col-span-2 h-72 bg-gray-200 rounded-lg" id="bird-map"></div>
+                                <div class="p-4 bg-blue-50 rounded-lg">
+                                    <h4 class="font-semibold text-blue-800">실시간 현황</h4>
+                                    <ul class="mt-2 space-y-2 text-sm">
+                                        <li class="flex justify-between"><span>감지된 조류:</span><span class="font-bold">12</span></li>
+                                        <li class="flex justify-between"><span>충돌 위험 경고:</span><span class="font-bold">2</span></li>
+                                        <li class="flex justify-between"><span>자동 회피 작동:</span><span class="font-bold">0</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">선박 충돌 방지 시스템</h3>
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="md:col-span-2 h-72 bg-gray-200 rounded-lg" id="ship-map"></div>
+                                <div class="p-4 bg-purple-50 rounded-lg">
+                                    <h4 class="font-semibold text-purple-800">실시간 현황</h4>
+                                     <ul class="mt-2 space-y-2 text-sm">
+                                        <li class="flex justify-between"><span>감지된 선박:</span><span class="font-bold">5</span></li>
+                                        <li class="flex justify-between"><span>충돌 위험 경고:</span><span class="font-bold">1</span></li>
+                                        <li class="flex justify-between"><span>VHF 경보 발송:</span><span class="font-bold">1</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+          },
+          'om-optimization': {
+            title: 'O&M 최적화',
+            subtitle:
+              '드론, 스마트글라스 등 첨단 기술을 활용하여 운영 및 유지보수 효율을 극대화합니다.',
+            content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">드론 점검 이력</h3>
+                            <ul class="mt-4 space-y-3 text-sm">
+                                <li class="p-3 bg-gray-50 rounded-lg"><strong>터빈 #15 (2025-08-26):</strong> 블레이드 표면 미세 균열 의심. <a href="#" class="font-medium text-blue-600 hover:underline">리포트 보기</a></li>
+                                <li class="p-3 bg-gray-50 rounded-lg"><strong>태양광 #02 (2025-08-25):</strong> 패널 일부 오염 확인. <a href="#" class="font-medium text-blue-600 hover:underline">리포트 보기</a></li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-gray-800">스마트글라스 원격지원 이력</h3>
+                            <ul class="mt-4 space-y-3 text-sm">
+                               <li class="p-3 bg-gray-50 rounded-lg"><strong>터빈 #23 (2025-08-27):</strong> 피치 시스템 긴급 점검 (전문가: 김현수). <a href="#" class="font-medium text-blue-600 hover:underline">로그 보기</a></li>
+                               <li class="p-3 bg-gray-50 rounded-lg"><strong>ESS #01 (2025-08-24):</strong> 냉각 시스템 점검 (전문가: 박지민). <a href="#" class="font-medium text-blue-600 hover:underline">로그 보기</a></li>
+                            </ul>
+                        </div>
+                    </div>`,
+          },
+          'ai-agent': {
+            title: 'AI Agent',
+            subtitle:
+              '대화형 AI Agent를 통해 원하는 데이터를 손쉽게 분석하고 확인할 수 있습니다.',
+            content: `
+                <div class="flex flex-col h-[calc(100vh-12rem)] bg-white rounded-lg shadow">
+                    <div class="p-4 border-b"><h3 class="text-lg font-semibold text-gray-800">AI Agent</h3><p class="text-sm text-gray-500">궁금한 점을 질문하면 AI가 데이터를 분석하여 답변해 드립니다.</p></div>
+                    <div id="chat-container" class="flex-1 p-4 overflow-y-auto space-y-4"></div>
+                    <div class="p-4 border-t"><div class="flex space-x-2"><input type="text" id="chat-input" class="flex-1 p-2 border rounded-lg" placeholder="예: 오늘 발전량 예측 보여줘"><button id="chat-submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">전송</button></div></div>
+                </div>`,
+          },
+          report: {
+            title: 'AI 리포트',
+            subtitle:
+              'AI 분석 기반의 리포트를 생성하고 솔루션 도입 효과를 확인합니다.',
+            content: `
+                <div>
+                    <div class="mb-4 border-b border-gray-200"><ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="report-tabs">
+                        <li class="mr-2"><button class="tab-button inline-block p-4 border-b-2 rounded-t-lg active" data-tab="report-generation">AI 보고서 생성</button></li>
+                        <li class="mr-2"><button class="tab-button inline-block p-4 border-b-2 rounded-t-lg" data-tab="risk-verification">AI 솔루션 기대효과</button></li>
+                    </ul></div>
+                    <div id="report-content">
+                        <div id="report-generation-tab" class="space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-lg font-semibold text-gray-800">AI 보고서 생성</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                                    <select id="report-type" class="p-2 border rounded-lg"><option value="safety">운영 보고서</option><option value="equipment">정비 보고서</option></select>
+                                    <select id="report-period" class="p-2 border rounded-lg"><option value="daily">일간</option><option value="weekly">주간</option><option value="monthly">월간</option></select>
+                                    <input type="date" id="report-date" class="p-2 border rounded-lg col-span-1 md:col-span-1" value="">
+                                    <button id="generate-report-btn" class="py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 col-span-1 md:col-span-1">보고서 생성</button>
+                                </div>
+                            </div>
+                            <div id="report-display-area" class="bg-white p-8 rounded-lg shadow min-h-[40rem]"><div class="text-center text-gray-500"><svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h12.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg><h3 class="mt-2 text-sm font-semibold text-gray-900">보고서를 생성해주세요.</h3><p class="mt-1 text-sm text-gray-500">위에서 원하는 보고서 종류와 기간을 선택하고 '보고서 생성' 버튼을 클릭하세요.</p></div></div>
+                        </div>
+                        <div id="risk-verification-tab" class="hidden space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-lg font-semibold text-gray-800">AI 솔루션 적용 기대효과</h3>
+                                <p class="mt-1 text-sm text-gray-600">AI 솔루션 도입을 통해 예상되는 정량적, 정성적 기대효과입니다.</p>
+                                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="border rounded-lg p-4"><h4 class="font-semibold text-center mb-2">정량적 효과</h4><ul class="space-y-2 text-sm">
+                                        <li class="flex justify-between"><span>생산량 수익성 향상:</span><span class="font-bold text-green-600">4%</span></li>
+                                        <li class="flex justify-between"><span>유지보수 비용 절감:</span><span class="font-bold text-green-600">5%</span></li>
+                                        <li class="flex justify-between"><span>다운타임 기간 감소:</span><span class="font-bold text-green-600">20%</span></li>
+                                        <li class="flex justify-between"><span>원가 절감액:</span><span class="font-bold text-green-600">0.5 ~ 1억원</span></li>
+                                    </ul></div>
+                                    <div class="border rounded-lg p-4"><h4 class="font-semibold text-center mb-2">정성적 효과</h4><ul class="space-y-3 text-sm list-disc list-inside">
+                                        <li>실시간 위험 경고를 통한 현장 안전성 향상</li>
+                                        <li>글로벌 시장 경쟁력 강화</li>
+                                        <li>데이터 기반 예지보전 전환으로 운영 효율성 증대</li>
+                                        <li>에너지 낭비 최소화 및 탄소 배출 저감으로 ESG 경영 기여</li>
+                                    </ul></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`,
+          },
+        };
+
+        // --- 3. 데이터 시뮬레이션 ---
+        // 실제 운영 환경에서는 API를 통해 받아올 데이터입니다.
+        const assetData = {
+          'WT-01': {
+            name: '터빈 #01',
+            type: '풍력',
+            status: '정상',
+            color: 'green',
+            location: [35.23, 129.21],
+            alertMessage: '모든 시스템 정상',
+            sensors: {
+              풍속: '12.1 m/s',
+              '로터 속도': '16 RPM',
+              '피치 각도': '1.2°',
+              발전량: '3.1 MW',
+              진동: '0.5 g',
+              '기어박스 온도': '65℃',
+            },
+          },
+          'WT-03': {
+            name: '터빈 #03',
+            type: '풍력',
+            status: '고장',
+            color: 'red',
+            location: [35.22, 129.23],
+            alertMessage: '블레이드 피치 시스템 오류!',
+            sensors: {
+              풍속: '8.5 m/s',
+              '로터 속도': '0 RPM',
+              '피치 각도': '89° (고정)',
+              발전량: '0 kW',
+              진동: '0.8 g',
+              '기어박스 온도': '45℃',
+            },
+          },
+          'WT-07': {
+            name: '터빈 #07',
+            type: '풍력',
+            status: '주의',
+            color: 'yellow',
+            location: [35.24, 129.22],
+            alertMessage: '요잉(Yawing) 시스템 이상 감지',
+            sensors: {
+              풍속: '12.5 m/s',
+              '로터 속도': '15 RPM',
+              '피치 각도': '1.5°',
+              발전량: '2.8 MW',
+              진동: '1.5 g (주의)',
+              '기어박스 온도': '68℃',
+            },
+          },
+          'SP-02': {
+            name: '태양광 #02',
+            type: '태양광',
+            status: '정상',
+            color: 'green',
+            location: [35.3, 129.18],
+            alertMessage: '모든 시스템 정상',
+            sensors: {
+              일사량: '0.9 kWh/m²',
+              '모듈 온도': '42℃',
+              '인버터 효율': '98.5%',
+              발전량: '480 kW',
+              전압: '700V',
+              전류: '685A',
+            },
+          },
+          'SP-05': {
+            name: '태양광 #05',
+            type: '태양광',
+            status: '주의',
+            color: 'yellow',
+            location: [35.31, 129.19],
+            alertMessage: '인버터 #5 효율 저하',
+            sensors: {
+              일사량: '0.8 kWh/m²',
+              '모듈 온도': '45℃',
+              '인버터 효율': '95.5% (저하)',
+              발전량: '450 kW',
+              전압: '680V',
+              전류: '660A',
+            },
+          },
+          'ESS-01': {
+            name: 'ESS #01',
+            type: 'ESS',
+            status: '정상',
+            color: 'green',
+            location: [35.29, 129.17],
+            alertMessage: '충전 중 (75%)',
+            sensors: {
+              SOC: '75 %',
+              SOH: '98 %',
+              '현재 전력': '5.2 MW',
+              온도: '25 ℃',
+              전압: '750 V',
+              전류: '6930 A',
+            },
+          },
+        };
+
+        const eventLogs = [
+          {
+            type: '고장',
+            color: 'red',
+            asset: '터빈 #03',
+            message: '블레이드 피치 시스템 오류',
+            time: '방금 전',
+          },
+          {
+            type: '주의',
+            color: 'yellow',
+            asset: '태양광 인버터 #05',
+            message: '효율 저하',
+            time: '3분 전',
+          },
+          {
+            type: '안전',
+            color: 'purple',
+            asset: '해상 안전 시스템',
+            message: '미식별 선박 안전구역 접근',
+            time: '10분 전',
+          },
+          {
+            type: '정보',
+            color: 'blue',
+            asset: 'ESS #01',
+            message: '충전 시작 (SOC 70%)',
+            time: '15분 전',
+          },
+          {
+            type: '정상',
+            color: 'green',
+            asset: '터빈 #01',
+            message: '정상 운전 복귀',
+            time: '25분 전',
+          },
+        ];
+
+        const rulData = [
+          {
+            id: 'WT-03',
+            component: '블레이드 피치 시스템',
+            rul: 10,
+            status: '위험',
+            eta: '즉시 점검 필요',
+            color: 'red',
+          },
+          {
+            id: 'WT-07',
+            component: '요잉 시스템',
+            rul: 45,
+            status: '주의',
+            eta: '1개월 내',
+            color: 'yellow',
+          },
+          {
+            id: 'SP-05',
+            component: '인버터',
+            rul: 55,
+            status: '주의',
+            eta: '2개월 내',
+            color: 'yellow',
+          },
+          {
+            id: 'ESS-01',
+            component: '배터리 모듈',
+            rul: 70,
+            status: '양호',
+            eta: '5개월 후',
+            color: 'green',
+          },
+          {
+            id: 'WT-01',
+            component: '기어박스',
+            rul: 85,
+            status: '양호',
+            eta: '8개월 후',
+            color: 'green',
+          },
+        ];
+
+        // --- 4. UI 렌더링 및 업데이트 함수 ---
+
+        /**
+         * 지정된 ID의 페이지를 화면에 표시합니다.
+         * 이전 페이지의 차트와 맵 인스턴스를 정리하고 새 페이지의 콘텐츠를 렌더링합니다.
+         * @param {string} pageId - 표시할 페이지의 ID (예: 'dashboard')
+         */
+        function showPage(pageId) {
+          // 기존 차트 및 맵 인스턴스 파기
+          Object.values(chartInstances).forEach((chart) => chart.destroy());
+          chartInstances = {};
+          Object.values(mapInstances).forEach((map) => map.remove());
+          mapInstances = {};
+          if (modalChartInstance) {
+            modalChartInstance.destroy();
+            modalChartInstance = null;
+          }
+
+          const pageInfo = pageTemplates[pageId];
+          if (!pageInfo) return;
+
+          // 페이지 콘텐츠 및 헤더 업데이트
+          pageContent.innerHTML = pageInfo.content;
+          headerTitle.querySelector('.page-title').textContent = pageInfo.title;
+          headerTitle.querySelector('.page-description').textContent =
+            pageInfo.subtitle;
+
+          // LNB 활성 상태 업데이트
+          lnb
+            .querySelectorAll('.sidebar-item, .active-sidebar-item')
+            .forEach((link) => {
+              if (link.dataset.pageId === pageId) {
+                link.className = 'active-sidebar-item';
+              } else {
+                link.className = 'sidebar-item';
+              }
+            });
+
+          // 페이지별 초기화 함수 호출
+          const initFunctions = {
+            dashboard: initDashboard,
+            'asset-analysis': initAssetAnalysis,
+            'power-forecast': initPowerForecast,
+            'predictive-maintenance': initPredictiveMaintenance,
+            'ess-management': initEssManagement,
+            'energy-savings': initEnergySavings,
+            'environmental-safety': initEnvironmentalSafety,
+            'ai-agent': initAIAgent,
+            report: initReport,
+          };
+
+          if (initFunctions[pageId]) {
+            initFunctions[pageId]();
+          }
+
+          // 지도가 포함된 페이지의 경우 추가 크기 재계산
+          setTimeout(() => {
+            Object.values(mapInstances).forEach((map) => {
+              if (map && typeof map.invalidateSize === 'function') {
+                map.invalidateSize();
+              }
+            });
+          }, 200);
+        }
+
+        // --- 5. 페이지별 초기화 함수 ---
+
+        function initDashboard() {
+          // 지도 초기화 - 지연 초기화로 컨테이너 크기 문제 해결
+          setTimeout(() => {
+            const map = L.map('asset-map').setView([35.25, 129.2], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            }).addTo(map);
+            mapInstances['asset-map'] = map;
+
+            // 지도에 자산 마커 추가
+            Object.entries(assetData).forEach(([id, data]) => {
+              const iconHtml = `<div style="background-color: ${data.color};" class="w-4 h-4 rounded-full border-2 border-white shadow"></div>`;
+              const customIcon = L.divIcon({
+                html: iconHtml,
+                className: 'custom-map-icon',
+              });
+              L.marker(data.location, { icon: customIcon })
+                .addTo(map)
+                .bindPopup(`<b>${data.name}</b><br>${data.status}`);
+            });
+
+            // 지도 크기 재계산
+            setTimeout(() => {
+              map.invalidateSize();
+            }, 100);
+          }, 50);
+
+          // 이벤트 로그 렌더링
+          const eventLogContainer = document.getElementById('event-log');
+          eventLogContainer.innerHTML = eventLogs
+            .map(
+              (log) => `
+                <div class="flex items-start p-3 bg-${log.color}-50 rounded-lg">
+                    <div class="w-3 h-3 mt-1 bg-${log.color}-500 rounded-full flex-shrink-0"></div>
+                    <div class="ml-3">
+                        <p class="text-sm font-semibold text-${log.color}-800">[${log.type}] ${log.asset} ${log.message}</p>
+                        <p class="text-xs text-gray-500">${log.time}</p>
+                    </div>
+                </div>
+            `
+            )
+            .join('');
+        }
+
+        function initAssetAnalysis() {
+          const assetListContainer = document.getElementById('asset-list');
+          const assetDetailsContainer =
+            document.getElementById('asset-details');
+
+          // 자산 목록 렌더링
+          assetListContainer.innerHTML = Object.entries(assetData)
+            .map(
+              ([id, data]) => `
+                <div class="asset-item border rounded-lg p-3 cursor-pointer hover:bg-gray-100" data-asset-id="${id}">
+                    <div class="flex justify-between items-center">
+                        <p class="font-bold text-gray-800">${data.name}</p>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full text-${data.color}-800 bg-${data.color}-100">${data.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-500">${data.type} / ${data.alertMessage}</p>
+                </div>
+            `
+            )
+            .join('');
+
+          // 자산 클릭 이벤트 처리
+          assetListContainer.addEventListener('click', (e) => {
+            const assetItem = e.target.closest('.asset-item');
+            if (assetItem) {
+              const assetId = assetItem.dataset.assetId;
+
+              // 활성 스타일 업데이트
+              assetListContainer
+                .querySelectorAll('.asset-item')
+                .forEach((item) => item.classList.remove('active'));
+              assetItem.classList.add('active');
+
+              // 상세 정보 표시
+              displayAssetDetails(assetId, assetDetailsContainer);
+            }
+          });
+        }
+
+        function initPowerForecast() {
+          const forecastLabels = Array.from(
+            { length: 24 },
+            (_, i) => `${String(i).padStart(2, '0')}:00`
+          );
+          const forecastData = {
+            forecast: forecastLabels.map(() => Math.random() * 100 + 50),
+            actual: forecastLabels.map((_, i) =>
+              i < 10 ? Math.random() * 90 + 55 : null
+            ), // 현재 시간까지만 실제 데이터
+          };
+          createChart(
+            'power-forecast-detail-chart',
+            'line',
+            {
+              labels: forecastLabels,
+              datasets: [
+                {
+                  label: '예측 발전량 (MWh)',
+                  data: forecastData.forecast,
+                  borderColor: '#3B82F6',
+                  tension: 0.3,
+                  fill: false,
+                },
+                {
+                  label: '실제 발전량 (MWh)',
+                  data: forecastData.actual,
+                  borderColor: '#10B981',
+                  tension: 0.3,
+                  fill: false,
+                },
+              ],
+            },
+            { responsive: true, maintainAspectRatio: false }
+          );
+          createChart(
+            'wind-power-chart',
+            'bar',
+            {
+              labels: ['터빈 #01', '터빈 #03', '터빈 #07'],
+              datasets: [
+                {
+                  label: '현재 발전량 (MW)',
+                  data: [3.1, 0, 2.8],
+                  backgroundColor: ['#10B981', '#EF4444', '#F59E0B'],
+                },
+              ],
+            },
+            {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+              layout: {
+                padding: 10,
+              },
+              onResize: function (chart, size) {
+                // 높이를 256px로 제한
+                if (size.height > 256) {
+                  chart.canvas.parentNode.style.height = '256px';
+                  chart.resize(size.width, 256);
+                }
+              },
+            }
+          );
+          createChart(
+            'solar-power-chart',
+            'bar',
+            {
+              labels: ['태양광 #02', '태양광 #05'],
+              datasets: [
+                {
+                  label: '현재 발전량 (kW)',
+                  data: [480, 450],
+                  backgroundColor: ['#10B981', '#F59E0B'],
+                },
+              ],
+            },
+            {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+              layout: {
+                padding: 10,
+              },
+              onResize: function (chart, size) {
+                // 높이를 256px로 제한
+                if (size.height > 256) {
+                  chart.canvas.parentNode.style.height = '256px';
+                  chart.resize(size.width, 256);
+                }
+              },
+            }
+          );
+        }
+
+        function initPredictiveMaintenance() {
+          const tableBody = document.querySelector('#rul-table tbody');
+          tableBody.innerHTML = rulData
+            .map(
+              (item) => `
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4 font-bold">${assetData[item.id].name}</td>
+                    <td class="px-6 py-4">${item.component}</td>
+                    <td class="px-6 py-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-${item.color}-600 h-2.5 rounded-full" style="width: ${item.rul}%"></div>
+                        </div>
+                        <span class="text-xs">${item.rul}% (${item.status})</span>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-${item.color}-600">${item.eta}</td>
+                    <td class="px-6 py-4"><button class="font-medium text-blue-600 hover:underline view-details-btn" data-asset-id="${item.id}">보기</button></td>
+                </tr>
+            `
+            )
+            .join('');
+
+          // '보기' 버튼 이벤트 리스너
+          tableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('view-details-btn')) {
+              const assetId = e.target.dataset.assetId;
+              openModal(assetId);
+            }
+          });
+        }
+
+        function initEssManagement() {
+          const essLabels = Array.from(
+            { length: 24 },
+            (_, i) => `${String(i).padStart(2, '0')}:00`
+          );
+          const chargeData = essLabels.map((_, i) =>
+            (i > 2 && i < 8) || i > 18 ? Math.random() * 5 : 0
+          ); // 새벽/밤 충전
+          const dischargeData = essLabels.map((_, i) =>
+            i > 9 && i < 17 ? -(Math.random() * 4) : 0
+          ); // 낮 방전
+          createChart(
+            'ess-charge-discharge-chart',
+            'bar',
+            {
+              labels: essLabels,
+              datasets: [
+                {
+                  label: '충전량 (MW)',
+                  data: chargeData,
+                  backgroundColor: '#3B82F6',
+                },
+                {
+                  label: '방전량 (MW)',
+                  data: dischargeData,
+                  backgroundColor: '#10B981',
+                },
+              ],
+            },
+            {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: { stacked: true },
+                y: { stacked: true },
+              },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top',
+                },
+              },
+            }
+          );
+        }
+
+        function initEnergySavings() {
+          const savingsLabels = [
+            '1월',
+            '2월',
+            '3월',
+            '4월',
+            '5월',
+            '6월',
+            '7월',
+            '8월',
+          ];
+          const savingsData = savingsLabels.map(
+            () => Math.random() * 500 + 800
+          );
+          createChart(
+            'energy-savings-chart',
+            'line',
+            {
+              labels: savingsLabels,
+              datasets: [
+                {
+                  label: '에너지 절감량 (MWh)',
+                  data: savingsData,
+                  borderColor: '#10B981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  tension: 0.3,
+                  fill: true,
+                },
+              ],
+            },
+            {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top',
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            }
+          );
+        }
+
+        function initEnvironmentalSafety() {
+          // 조류 충돌 모니터링 지도 초기화
+          setTimeout(() => {
+            const birdMap = L.map('bird-map').setView([35.23, 129.22], 14);
+            L.tileLayer(
+              'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ).addTo(birdMap);
+            mapInstances['bird-map'] = birdMap;
+
+            // 지도 크기 재계산
+            setTimeout(() => {
+              birdMap.invalidateSize();
+            }, 100);
+          }, 50);
+
+          // 해상 교통 모니터링 지도 초기화
+          setTimeout(() => {
+            const shipMap = L.map('ship-map').setView([35.23, 129.22], 14);
+            L.tileLayer(
+              'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ).addTo(shipMap);
+            mapInstances['ship-map'] = shipMap;
+
+            // 지도 크기 재계산
+            setTimeout(() => {
+              shipMap.invalidateSize();
+            }, 100);
+          }, 50);
+        }
+
+        function initAIAgent() {
+          const chatContainer = document.getElementById('chat-container');
+          const chatInput = document.getElementById('chat-input');
+          const chatSubmit = document.getElementById('chat-submit');
+
+          const addMessage = (sender, message) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-3 rounded-lg max-w-md ${sender === 'user' ? 'bg-blue-500 text-white self-end ml-auto' : 'bg-gray-200 text-gray-800 self-start mr-auto'}`;
+            messageDiv.innerHTML = message; // innerHTML을 사용하여 응답에 포함된 HTML 태그 렌더링
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+          };
+
+          const handleChatSubmit = () => {
+            const query = chatInput.value.trim();
+            if (!query) return;
+
+            addMessage('user', query);
+            chatInput.value = '';
+
+            // UX Improvement: Disable form while AI is "thinking"
+            chatInput.disabled = true;
+            chatSubmit.disabled = true;
+            chatSubmit.textContent = '분석중...';
+
+            // AI 응답 시뮬레이션
+            setTimeout(() => {
+              let response =
+                "죄송합니다. 잘 이해하지 못했습니다. '오늘 발전량 예측', '터빈 #03 상태'와 같이 질문해주세요.";
+              if (query.includes('발전량 예측')) {
+                response =
+                  '오늘의 총 예측 발전량은 <strong>2,150 MWh</strong> 입니다. 현재까지 실제 발전량은 예측치와 유사한 수준을 보이고 있습니다.';
+              } else if (query.includes('터빈 #03')) {
+                response =
+                  "터빈 #03은 현재 '고장' 상태이며, 원인은 '블레이드 피치 시스템 오류'로 파악됩니다. 즉시 점검이 필요합니다.";
+              } else if (query.includes('고장')) {
+                const faultyAssets = Object.entries(assetData)
+                  .filter(([_, data]) => data.status === '고장')
+                  .map(([_, data]) => data.name);
+                response =
+                  faultyAssets.length > 0
+                    ? `현재 고장 상태인 자산은 ${faultyAssets.join(', ')} 입니다.`
+                    : '현재 고장 상태인 자산은 없습니다.';
+              }
+              addMessage('ai', response);
+
+              // Re-enable form
+              chatInput.disabled = false;
+              chatSubmit.disabled = false;
+              chatSubmit.textContent = '전송';
+              chatInput.focus();
+            }, 1000);
+          };
+
+          chatSubmit.addEventListener('click', handleChatSubmit);
+          chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleChatSubmit();
+          });
+        }
+
+        function initReport() {
+          const tabs = document.getElementById('report-tabs');
+          const reportContent = document.getElementById('report-content');
+          const generateBtn = document.getElementById('generate-report-btn');
+          const dateInput = document.getElementById('report-date');
+
+          // Convenience Improvement: Set default date to today
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          dateInput.value = `${yyyy}-${mm}-${dd}`;
+
+          tabs.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+              tabs
+                .querySelectorAll('.tab-button')
+                .forEach((btn) => btn.classList.remove('active'));
+              e.target.classList.add('active');
+
+              reportContent
+                .querySelectorAll('[id$="-tab"]')
+                .forEach((tabContent) => tabContent.classList.add('hidden'));
+              document
+                .getElementById(`${e.target.dataset.tab}-tab`)
+                .classList.remove('hidden');
+            }
+          });
+
+          generateBtn.addEventListener('click', () => {
+            const reportArea = document.getElementById('report-display-area');
+            reportArea.innerHTML = `<div class="flex justify-center items-center h-full"><div class="text-center py-10"><svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p>보고서를 생성 중입니다...</p></div></div>`;
+
+            setTimeout(() => {
+              const reportType =
+                document.getElementById('report-type').options[
+                  document.getElementById('report-type').selectedIndex
+                ].text;
+              const reportPeriod =
+                document.getElementById('report-period').options[
+                  document.getElementById('report-period').selectedIndex
+                ].text;
+              const reportDate = dateInput.value;
+
+              reportArea.innerHTML = `
+                        <div class="prose max-w-none">
+                            <div class="text-center border-b pb-4 mb-8">
+                                <h1 class="text-3xl font-bold text-gray-800">${reportPeriod} ${reportType}</h1>
+                                <p class="text-gray-500"><strong>보고일:</strong> ${reportDate} | <strong>작성자:</strong> AI 관제 시스템</p>
+                            </div>
+
+                            <h2 class="text-xl font-bold text-gray-700 border-l-4 border-blue-600 pl-2">1. 운영 현황 요약</h2>
+                            <p>본 보고서는 ${reportDate} 기준 ${reportPeriod} 운영 데이터를 심층 분석한 결과입니다. 전반적으로 안정적인 운영을 보였으나, 일부 자산에서 주의 및 점검이 필요한 이벤트가 발생했습니다.</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8 not-prose">
+                                <div class="p-4 border rounded-lg">
+                                    <h3 class="font-semibold text-center mb-2">주요 이벤트 분석</h3>
+                                    <div class="h-64"><canvas id="report-event-chart"></canvas></div>
+                                </div>
+                                <div class="p-4 border rounded-lg">
+                                    <h3 class="font-semibold text-center mb-2">자산별 발전량 기여도 (%)</h3>
+                                    <div class="h-64"><canvas id="report-contribution-chart"></canvas></div>
+                                </div>
+                            </div>
+
+                            <h2 class="text-xl font-bold text-gray-700 border-l-4 border-blue-600 pl-2">2. 상세 분석 및 제언</h2>
+                            <h3 class="font-semibold mt-4">주요 이벤트 상세</h3>
+                            <ul>
+                                <li><strong>[고장] 터빈 #03:</strong> 블레이드 피치 시스템 오류로 인해 3시간의 다운타임이 발생했습니다. 즉각적인 현장 점검 및 정비가 필요합니다.</li>
+                                <li><strong>[주의] 태양광 #05:</strong> 인버터 효율이 기준치 이하(95.5%)로 저하되었습니다. 원인 파악을 위한 원격 진단을 권장합니다.</li>
+                                <li><strong>[안전] 해상 안전 시스템:</strong> 미식별 선박이 안전구역에 접근하여 VHF 경보를 발송했습니다. 해당 시간대 CCTV 영상 분석이 필요합니다.</li>
+                            </ul>
+                            <h3 class="font-semibold mt-4">종합 평가 및 제언</h3>
+                            <p>총 예측 발전량 2,150 MWh 대비 실제 발전량은 2,130 MWh로 <strong>99%의 달성률</strong>을 기록했습니다. 터빈 #03의 고장으로 인한 손실을 제외하면 예측 정확도는 매우 높은 수준입니다. 향후 RUL(잔여수명) 예측 데이터를 기반으로 터빈 #03과 같은 돌발 정지를 최소화하는 예지보전 전략을 강화해야 합니다.</p>
+
+                            <h2 class="text-xl font-bold text-gray-700 border-l-4 border-blue-600 pl-2 mt-12">3. 시스템 아키텍처</h2>
+                            <div class="not-prose flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4 p-4 border rounded-lg mt-4">
+                                <div class="arch-box"><strong>센서/IoT 기기</strong><p class="text-xs">(터빈, 패널, ESS)</p></div>
+                                <div class="arch-arrow transform md:-rotate-0">&rarr;</div>
+                                <div class="arch-box"><strong>데이터 수집/전송</strong><p class="text-xs">(Gateway)</p></div>
+                                <div class="arch-arrow transform md:-rotate-0">&rarr;</div>
+                                <div class="arch-box"><strong>클라우드 플랫폼</strong><p class="text-xs">(AI/ML 분석, 데이터 저장)</p></div>
+                                <div class="arch-arrow transform md:-rotate-0">&rarr;</div>
+                                <div class="arch-box"><strong>통합 관제 대시보드</strong><p class="text-xs">(시각화, 경고, 리포트)</p></div>
+                            </div>
+                        </div>
+                    `;
+
+              // 보고서 내 차트 생성
+              createChart(
+                'report-event-chart',
+                'doughnut',
+                {
+                  labels: ['고장', '주의', '안전', '정보', '정상'],
+                  datasets: [
+                    {
+                      data: [1, 2, 1, 3, 5],
+                      backgroundColor: [
+                        '#EF4444',
+                        '#F59E0B',
+                        '#8B5CF6',
+                        '#3B82F6',
+                        '#10B981',
+                      ],
+                    },
+                  ],
+                },
+                { responsive: true, maintainAspectRatio: false }
+              );
+
+              createChart(
+                'report-contribution-chart',
+                'bar',
+                {
+                  labels: Object.values(assetData).map((d) => d.name),
+                  datasets: [
+                    {
+                      label: '발전량 기여도 (%)',
+                      data: [30, 0, 25, 20, 18, 7], // 시뮬레이션 데이터
+                      backgroundColor: Object.values(assetData).map((d) => {
+                        if (d.status === '고장') return '#EF4444';
+                        if (d.status === '주의') return '#F59E0B';
+                        return '#10B981';
+                      }),
+                    },
+                  ],
+                },
+                { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+              );
+            }, 1500);
+          });
+        }
+
+        // --- 6. 공용 함수 (상세 정보 표시, 모달, 차트 생성 등) ---
+
+        /**
+         * 자산 상세 정보를 지정된 컨테이너에 표시합니다.
+         * @param {string} assetId - 표시할 자산의 ID
+         * @param {HTMLElement} container - 상세 정보를 표시할 HTML 요소
+         */
+        function displayAssetDetails(assetId, container) {
+          const data = assetData[assetId];
+          if (!data) {
+            container.innerHTML = `<div class="text-center text-gray-500">데이터를 불러올 수 없습니다.</div>`;
+            return;
+          }
+
+          const sensorHtml = Object.entries(data.sensors)
+            .map(
+              ([key, value]) => `
+                <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-sm font-medium text-gray-600">${key}</span>
+                    <span class="text-sm font-bold text-gray-800">${value}</span>
+                </div>
+            `
+            )
+            .join('');
+
+          container.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">${data.name}</h3>
+                        <p class="text-md text-gray-500">${data.type}</p>
+                    </div>
+                    <span class="text-sm font-semibold px-3 py-1.5 rounded-full text-${data.color}-800 bg-${data.color}-100">${data.status}</span>
+                </div>
+                <div class="mt-4 p-4 rounded-lg bg-${data.color}-50 text-${data.color}-800 font-semibold">
+                    ${data.alertMessage}
+                </div>
+                <div class="mt-6">
+                    <h4 class="text-lg font-semibold text-gray-700 mb-3">실시간 센서 데이터</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        ${sensorHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * 지정된 자산 ID에 대한 상세 정보 모달을 엽니다.
+         * @param {string} assetId - 상세 정보를 표시할 자산의 ID
+         */
+        function openModal(assetId) {
+          const data = assetData[assetId];
+          if (!data) return;
+
+          modalContent.innerHTML = `
+                <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                <h3 class="text-xl font-bold mb-4">${data.name} 상세 분석</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-2">주요 센서 데이터</h4>
+                        <div class="space-y-2">
+                            ${Object.entries(data.sensors)
+                              .map(
+                                ([key, value]) =>
+                                  `<div class="flex justify-between text-sm p-2 bg-gray-50 rounded"><span class="text-gray-600">${key}:</span><span class="font-semibold">${value}</span></div>`
+                              )
+                              .join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">시간별 발전량 추이 (최근 6시간)</h4>
+                        <div class="h-64"><canvas id="modal-chart"></canvas></div>
+                    </div>
+                </div>
+            `;
+          modalContainer.classList.remove('hidden');
+
+          document
+            .getElementById('close-modal-btn')
+            .addEventListener('click', closeModal);
+
+          // 모달 내 차트 생성
+          const modalLabels = Array.from(
+            { length: 6 },
+            (_, i) => `${new Date().getHours() - 5 + i}:00`
+          );
+          const modalChartData = modalLabels.map(
+            () => Math.random() * (data.type === '풍력' ? 3 : 0.5)
+          );
+          if (modalChartInstance) modalChartInstance.destroy();
+          modalChartInstance = createChart(
+            'modal-chart',
+            'line',
+            {
+              labels: modalLabels,
+              datasets: [
+                {
+                  label: '발전량',
+                  data: modalChartData,
+                  borderColor: '#3B82F6',
+                  tension: 0.3,
+                },
+              ],
+            },
+            { responsive: true, maintainAspectRatio: false }
+          );
+        }
+
+        function closeModal() {
+          modalContainer.classList.add('hidden');
+          if (modalChartInstance) {
+            modalChartInstance.destroy();
+            modalChartInstance = null;
+          }
+        }
+
+        /**
+         * Chart.js를 사용하여 차트를 생성하고 관리합니다.
+         * @param {string} canvasId - 차트를 그릴 canvas 요소의 ID
+         * @param {string} type - 차트 유형 (예: 'line', 'bar', 'doughnut')
+         * @param {object} data - 차트 데이터
+         * @param {object} options - 차트 옵션
+         * @returns {Chart | undefined} 생성된 차트 인스턴스 또는 실패 시 undefined
+         */
+        function createChart(canvasId, type, data, options = {}) {
+          const ctx = document.getElementById(canvasId);
+          // Robustness Improvement: Check if canvas element exists before creating chart
+          if (!ctx) {
+            console.error(
+              `오류: ID가 "${canvasId}"인 캔버스 요소를 찾을 수 없습니다.`
+            );
+            return;
+          }
+          if (chartInstances[canvasId]) {
+            chartInstances[canvasId].destroy();
+          }
+          const chart = new Chart(ctx, { type, data, options });
+          chartInstances[canvasId] = chart;
+          return chart;
+        }
+
+        // --- 7. 이벤트 리스너 설정 ---
+
+        // LNB 네비게이션 클릭 이벤트
+        lnb.addEventListener('click', (e) => {
+          e.preventDefault();
+          const link = e.target.closest('.sidebar-item, .active-sidebar-item');
+          if (link && !link.classList.contains('active-sidebar-item')) {
+            const pageId = link.dataset.pageId;
+            showPage(pageId);
+          }
+        });
+
+        // 모달 닫기 이벤트 (배경 클릭)
+        modalContainer.addEventListener('click', (e) => {
+          if (e.target === modalContainer) {
+            closeModal();
+          }
+        });
+
+        // Robustness Improvement: Handle map resizing to prevent grey tiles
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            Object.values(mapInstances).forEach((map) => {
+              if (map) {
+                map.invalidateSize();
+              }
+            });
+          }, 250); // Debounce to avoid excessive calls
+        });
+
+        // --- 8. 초기 페이지 로드 ---
+        showPage('dashboard');
+      });
+    </script>
+  </body>
+</html>
