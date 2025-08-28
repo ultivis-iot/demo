@@ -1,0 +1,1951 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MBG Smart Kitchen Dashboard (PoC) - Ultivis Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="./custom-styles.css" />
+    <style>
+      @font-face {
+        font-family: 'SUIT-Regular';
+        src: url('../SUIT-Regular.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      body {
+        font-family:
+          'SUIT-Regular',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #f8f8f8;
+        color: #212529;
+        font-size: 14px;
+      }
+      /* 스크롤바 스타일링 */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+
+      /* Modal styles for printing */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .printable-area,
+        .printable-area * {
+          visibility: visible;
+        }
+        .printable-area {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .modal-footer {
+          display: none;
+        }
+      }
+
+      #sidebar {
+        transition:
+          transform 0.3s ease-in-out,
+          margin-left 0.3s ease-in-out;
+        transform: translateX(0);
+        width: 280px;
+        flex-shrink: 0;
+      }
+      #sidebar.sidebar-closed {
+        transform: translateX(-100%);
+        margin-left: -280px;
+      }
+      .main-content {
+        transition: margin-left 0.3s ease-in-out;
+      }
+
+      /* Sidebar Item Styles */
+      .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        color: #000000;
+        transition:
+          background-color 0.2s,
+          color 0.2s;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+      .sidebar-item:hover {
+        color: #111827;
+        background-color: #f3f4f6;
+      }
+      .active-sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        background-color: #e5f1ff;
+        color: #0075ff;
+        font-weight: 500;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin: 4px 0;
+      }
+
+      /* Design System Variables */
+      :root {
+        /* Colors */
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f8f8;
+        --text-primary: #000000;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+
+        /* Spacing (4px scale) */
+        --space-1: 0.25rem; /* 4px */
+        --space-2: 0.5rem; /* 8px */
+        --space-3: 0.75rem; /* 12px */
+        --space-4: 1rem; /* 16px */
+        --space-5: 1.25rem; /* 20px */
+        --space-6: 1.5rem; /* 24px */
+        --space-8: 2rem; /* 32px */
+
+        /* Typography */
+        --text-xs: 0.75rem; /* 12px */
+        --text-sm: 0.875rem; /* 14px */
+        --text-base: 1rem; /* 16px */
+        --text-lg: 1.125rem; /* 18px */
+        --text-xl: 1.25rem; /* 20px */
+        --font-medium: 500;
+        --font-semibold: 600;
+        --font-bold: 700;
+
+        /* Border Radius */
+        --radius-md: 0.75rem; /* 12px */
+
+        /* Shadows */
+        --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+        /* Transitions */
+        --transition-base: 300ms ease-in-out;
+
+        /* Widget Specific */
+        --widget-padding: var(--space-6);
+      }
+
+      .widget {
+        background-color: var(--bg-primary);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-base);
+        transition: all var(--transition-base);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .widget:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+      }
+
+      .widget-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-6) var(--widget-padding) 0 var(--widget-padding);
+        margin-bottom: 0;
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
+        color: var(--text-primary);
+        min-height: 3.5rem; /* 56px - consistent header height */
+      }
+
+      .widget-body {
+        padding: var(--widget-padding);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Ensure consistent spacing between header and body */
+      .widget-header + .widget-body {
+        padding-top: var(--widget-padding);
+      }
+      /* Status Colors */
+      :root {
+        --success: #10b981;
+        --warning: #fbbf24;
+        --error: #ef4444;
+        --info: #3b82f6;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .status-normal-bg {
+        background-color: var(--success);
+      }
+      .status-warning-bg {
+        background-color: var(--warning);
+      }
+      .status-danger-bg {
+        background-color: var(--error);
+      }
+      .status-alert-bg {
+        background-color: var(--info);
+      }
+      .alert-row-danger {
+        background-color: rgba(239, 68, 68, 0.05);
+      }
+      .alert-row-warning {
+        background-color: rgba(251, 191, 36, 0.05);
+      }
+
+      .status-tag {
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        padding: calc(var(--space-1) / 2) var(--space-2);
+        border-radius: 9999px;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Typography Utilities */
+      .text-xs {
+        font-size: 0.75rem;
+      }
+      .text-sm {
+        font-size: var(--text-sm);
+      }
+      .text-base {
+        font-size: var(--text-base);
+      }
+      .text-lg {
+        font-size: var(--text-lg);
+      }
+      .text-xl {
+        font-size: var(--text-xl);
+      }
+      .text-2xl {
+        font-size: 1.5rem;
+      }
+      .text-6xl {
+        font-size: 3.75rem;
+      }
+
+      .font-medium {
+        font-weight: var(--font-medium);
+      }
+      .font-semibold {
+        font-weight: var(--font-semibold);
+      }
+      .font-bold {
+        font-weight: var(--font-bold);
+      }
+
+      /* Color Utilities */
+      .text-primary {
+        color: var(--text-primary);
+      }
+      .text-secondary {
+        color: var(--text-secondary);
+      }
+      /* Button System */
+      :root {
+        --primary: #0075ff;
+        --primary-light: #e5f1ff;
+        --primary-dark: #0056cc;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--space-2);
+        font-weight: var(--font-medium);
+        font-size: var(--text-sm);
+        transition: all var(--transition-base);
+        cursor: pointer;
+        border: 1px solid transparent;
+      }
+
+      .filter-btn {
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid var(--border-color);
+        border-radius: var(--space-2);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        transition: all var(--transition-base);
+      }
+      .filter-btn.active {
+        background-color: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
+      }
+
+      .primary-btn {
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--space-2);
+        background-color: var(--primary);
+        color: #ffffff;
+        border: 1px solid var(--primary);
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
+        transition: all var(--transition-base);
+      }
+      .primary-btn:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+      }
+      .area-card {
+        border-left-width: 4px;
+        cursor: pointer;
+        transition: all var(--transition-base);
+      }
+      .area-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+      .area-card.selected {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(0, 117, 255, 0.5);
+      }
+      .arch-layer {
+        border: 1px solid var(--border-color);
+        border-radius: var(--space-2);
+        padding: var(--space-6);
+        background-color: var(--bg-primary);
+      }
+      .arch-group {
+        flex: 1;
+      }
+      .arch-box {
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-secondary);
+        padding: var(--space-3);
+        border-radius: var(--space-1);
+        margin-bottom: var(--space-2);
+      }
+      .arch-title {
+        font-weight: var(--font-bold);
+        font-size: var(--text-lg);
+        margin-bottom: var(--space-4);
+        text-align: center;
+        color: var(--text-primary);
+      }
+      .arch-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 0;
+      }
+    </style>
+  </head>
+  <body class="bg-[#f8f8f8]">
+    <!-- Header -->
+    <header class="fixed left-0 right-0 top-0 z-50 border-b bg-white shadow-2">
+      <div
+        class="ease flex max-h-16 w-full flex-col justify-start overflow-hidden px-5 transition-[max-height] duration-150 sm:flex-row sm:items-center sm:justify-between sm:overflow-visible sm:border-none"
+      >
+        <div class="my-auto flex min-h-16 items-center gap-3 sm:gap-4">
+          <button
+            id="sidebar-toggle-btn"
+            aria-controls="sidebar"
+            class="stroke-gray-600"
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="aspect-square w-6 shrink-0"
+            >
+              <path
+                id="sidebar-toggle-icon-close"
+                d="M20 24L12 16L20 8"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+              <path
+                id="sidebar-toggle-icon-open"
+                d="M6 8H26M6 16H26M6 24H26"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="hidden"
+              ></path>
+            </svg>
+          </button>
+          <a class="block" href="../index.html">
+            <img
+              src="../assets/logo-nav.png"
+              alt="Logo"
+              class="max-h-16 w-auto"
+            />
+          </a>
+          <div
+            class="text-gray-800 line-clamp-1 hidden w-fit whitespace-nowrap text-2xl font-bold"
+          >
+            MBG Smart Kitchen Dashboard
+          </div>
+        </div>
+        <ul
+          class="relative z-50 my-auto flex min-h-16 w-full justify-center gap-2 sm:border-none"
+        >
+          <div
+            class="text-gray-700 flex flex-1 items-center gap-3 whitespace-nowrap text-base max-sm:flex-wrap"
+          >
+            <nav
+              aria-label="Main"
+              data-orientation="horizontal"
+              dir="ltr"
+              class="relative z-10 flex w-full max-w-full flex-1 items-center justify-evenly sm:justify-end"
+            >
+              <div style="position: relative gap-y-1">
+                <ul
+                  data-orientation="horizontal"
+                  class="group flex flex-1 list-none items-center justify-center space-x-1"
+                  dir="ltr"
+                >
+                  <li class="flex flex-1 justify-center">
+                    <button
+                      class="date-[active]:text-primary disabled:text-gray-500 group group group inline-flex h-13 w-full items-center justify-center rounded-md bg-white px-0 py-2 text-lg font-medium transition-colors hover:bg-transparent hover:text-accent-foreground focus:bg-transparent focus:text-accent-foreground focus:outline-none disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-50 data-[active]:bg-transparent data-[state=open]:bg-transparent"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-6 w-6 group-data-[state=open]:text-primary"
+                        >
+                          <path
+                            d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                          <path
+                            d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></path>
+                        </svg>
+                        <div
+                          class="no-layout-shift my-auto hidden text-grayscale-300 group-data-[state=open]:text-primary sm:flex"
+                          data-text="관제 매니저"
+                        >
+                          Kitchen Manager
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+          </div>
+        </ul>
+      </div>
+    </header>
+
+    <div class="flex h-screen pt-16">
+      <!-- New Sidebar -->
+      <aside
+        id="sidebar"
+        class="z-40 my-5 ml-5 rounded-2xl border border-solid border-grayscale-700 bg-white shadow-lg"
+      >
+        <div class="no-scrollbar flex h-full flex-col overflow-y-auto">
+          <nav id="lnb" class="p-4 text-lg font-medium">
+            <ul class="mt-[1px] flex flex-col gap-1.5">
+              <li class="py-[2px]">
+                <div
+                  id="nav-dashboard"
+                  data-target="dashboard-page"
+                  title="Dashboard"
+                  class="active-sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
+                    ></path>
+                    <path
+                      d="M9 22V14H15V22"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]"
+                    >Dashboard</span
+                  >
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-sensors"
+                  data-target="sensor-page"
+                  title="Sensors"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="4"
+                      y="4"
+                      width="16"
+                      height="16"
+                      rx="2"
+                      ry="2"
+                      stroke-width="2"
+                    ></rect>
+                    <rect
+                      x="9"
+                      y="9"
+                      width="6"
+                      height="6"
+                      stroke-width="2"
+                    ></rect>
+                    <line x1="9" y1="1" x2="9" y2="4" stroke-width="2"></line>
+                    <line x1="15" y1="1" x2="15" y2="4" stroke-width="2"></line>
+                    <line x1="9" y1="20" x2="9" y2="23" stroke-width="2"></line>
+                    <line
+                      x1="15"
+                      y1="20"
+                      x2="15"
+                      y2="23"
+                      stroke-width="2"
+                    ></line>
+                    <line x1="20" y1="9" x2="23" y2="9" stroke-width="2"></line>
+                    <line
+                      x1="20"
+                      y1="14"
+                      x2="23"
+                      y2="14"
+                      stroke-width="2"
+                    ></line>
+                    <line x1="1" y1="9" x2="4" y2="9" stroke-width="2"></line>
+                    <line x1="1" y1="14" x2="4" y2="14" stroke-width="2"></line>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]">Sensors</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-cameras"
+                  data-target="camera-page"
+                  title="Cameras"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]">Cameras</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-reports"
+                  data-target="report-page"
+                  title="Reports"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    ></path>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]">Reports</span>
+                </div>
+              </li>
+              <li class="py-[2px]">
+                <div
+                  id="nav-architecture"
+                  data-target="architecture-page"
+                  title="System Architecture"
+                  class="sidebar-item"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                    ></path>
+                  </svg>
+                  <span class="flex-grow truncate leading-[22px]"
+                    >System Architecture</span
+                  >
+                </div>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- 메인 컨텐츠 영역 -->
+      <div class="main-content flex flex-1 flex-col overflow-hidden">
+        <main class="flex-1 overflow-y-auto p-6">
+          <!-- Dashboard Page -->
+          <div id="dashboard-page" class="page-content">
+            <div class="grid h-full grid-cols-1 gap-4 lg:grid-cols-3">
+              <div class="flex flex-col gap-4 lg:col-span-2">
+                <div class="widget">
+                  <div class="widget-header flex items-center justify-between">
+                    <span>Real-time Camera View</span>
+                    <div
+                      id="violation-count-badge"
+                      class="hidden rounded bg-red-500 px-2 py-1 text-xs font-bold text-white"
+                    >
+                      Violation: 0
+                    </div>
+                  </div>
+                  <div class="widget-body grid grid-cols-2 gap-4">
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-01 (Main Hall)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-01"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-02 (Storage)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-02"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-03 (Prepping Area)
+                      </div>
+                      <img
+                        id="cctv-feed-3"
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-03"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-04 (Loading Dock)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-04"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="widget flex-1">
+                  <div class="widget-header">30-Min Sensor Summary</div>
+                  <div
+                    id="dashboard-sensor-summary"
+                    class="widget-body grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2"
+                  ></div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-4 lg:col-span-1">
+                <div class="widget">
+                  <div class="widget-header">Emergency Response</div>
+                  <div class="widget-body space-y-3">
+                    <button
+                      id="evac-btn"
+                      class="w-full rounded-md bg-red-600 py-3 font-bold text-white transition-colors hover:bg-red-700"
+                    >
+                      Initiate Evacuation Broadcast
+                    </button>
+                    <button
+                      id="alert-btn"
+                      class="w-full rounded-md bg-yellow-500 py-3 font-bold text-white transition-colors hover:bg-yellow-600"
+                    >
+                      Send Emergency Alert to All Staff
+                    </button>
+                  </div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">Compliance Status (PPE)</div>
+                  <div class="widget-body grid grid-cols-3 text-center">
+                    <div>
+                      <p class="text-gray-500 text-sm">Total</p>
+                      <p id="total-staff" class="text-2xl font-bold">12</p>
+                    </div>
+                    <div>
+                      <p class="text-gray-500 text-sm">Compliant</p>
+                      <p
+                        id="compliant-staff"
+                        class="text-2xl font-bold text-green-600"
+                      >
+                        12
+                      </p>
+                    </div>
+                    <div>
+                      <p class="text-gray-500 text-sm">Violation</p>
+                      <p
+                        id="non-compliant-staff"
+                        class="text-2xl font-bold text-red-600"
+                      >
+                        0
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget flex-1">
+                  <div class="widget-header">Real-time Event Log</div>
+                  <div class="widget-body overflow-auto">
+                    <table class="w-full text-xs">
+                      <tbody id="event-log-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor Page -->
+          <div id="sensor-page" class="page-content hidden">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div class="space-y-4 lg:col-span-2">
+                <div class="widget">
+                  <div class="widget-header">
+                    Real-time Sensor Panel by Area
+                  </div>
+                  <div
+                    id="area-panel"
+                    class="widget-body grid grid-cols-1 gap-4 md:grid-cols-2"
+                  ></div>
+                </div>
+                <div
+                  id="trend-chart-container"
+                  class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                >
+                  <!-- Trend charts will be dynamically inserted here -->
+                </div>
+              </div>
+              <div class="space-y-4 lg:col-span-1">
+                <div class="widget">
+                  <div class="widget-header">Recommendations</div>
+                  <div
+                    id="recommendations-log"
+                    class="widget-body space-y-3"
+                  ></div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">Reports</div>
+                  <div class="widget-body">
+                    <button
+                      class="bg-gray-700 hover:bg-gray-800 w-full rounded-md py-2 text-white"
+                    >
+                      Download Monthly Report (PDF)
+                    </button>
+                  </div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">Real-time Environment Events</div>
+                  <div
+                    id="sensor-event-log"
+                    class="widget-body h-48 space-y-2 overflow-y-auto"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Camera Page -->
+          <div id="camera-page" class="page-content hidden">
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div class="widget lg:col-span-2">
+                <div class="widget-header">Camera Live View</div>
+                <div class="widget-body">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-01 (Main Hall)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-01"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-02 (Storage)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-02"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-03 (Prepping Area)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-03"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                    <div class="bg-gray-900 relative aspect-video rounded">
+                      <div
+                        class="absolute left-2 top-2 rounded bg-black bg-opacity-50 px-2 py-1 text-xs text-white"
+                      >
+                        CCTV-04 (Loading Dock)
+                      </div>
+                      <img
+                        src="https://placehold.co/640x360/000000/FFFFFF?text=CAM-04"
+                        class="h-full w-full rounded object-cover"
+                      />
+                    </div>
+                  </div>
+                  <hr class="my-3" />
+                  <div
+                    id="camera-status-grid"
+                    class="grid grid-cols-2 gap-4"
+                  >
+                    <!-- Camera status will be dynamically inserted here -->
+                  </div>
+                </div>
+              </div>
+              <div class="widget lg:col-span-1">
+                <div class="widget-header">Violation Event Log</div>
+                <div
+                  id="camera-event-log"
+                  class="widget-body h-[calc(100vh-150px)] space-y-3 overflow-y-auto"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Report Page -->
+          <div id="report-page" class="page-content hidden">
+            <div class="space-y-4">
+              <div class="widget">
+                <div class="widget-body flex items-center justify-between">
+                  <h2 class="text-lg font-bold">Kitchen #1 Summary Report</h2>
+                  <div
+                    id="report-filter-container"
+                    class="flex items-center space-x-2"
+                  >
+                    <span class="text-sm">Period:</span>
+                    <button data-period="daily" class="filter-btn active">
+                      Today
+                    </button>
+                    <button data-period="weekly" class="filter-btn">
+                      Last 7 Days
+                    </button>
+                    <button data-period="monthly" class="filter-btn">
+                      Last 30 Days
+                    </button>
+                    <button id="generate-report-btn" class="primary-btn ml-4">
+                      <i class="fas fa-file-alt mr-2"></i>Generate Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="grid h-full grid-cols-1 gap-4 lg:grid-cols-3">
+                <div class="flex flex-col gap-4 lg:col-span-1">
+                  <div class="widget text-center">
+                    <div class="widget-header">Overall Safety Score</div>
+                    <div class="widget-body">
+                      <p
+                        id="report-score"
+                        class="text-6xl font-bold text-blue-600"
+                      >
+                        85<span class="text-2xl">/100</span>
+                      </p>
+                      <p
+                        id="report-score-comparison"
+                        class="text-gray-500 mt-2"
+                      >
+                        vs Yesterday
+                        <span class="font-semibold text-green-500">+2</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="widget flex-1">
+                    <div class="widget-header">Sensor Status Summary</div>
+                    <div class="widget-body">
+                      <p class="mb-2 font-bold">Uptime</p>
+                      <div class="bg-gray-200 mb-4 h-2.5 w-full rounded-full">
+                        <div
+                          id="report-uptime-bar"
+                          class="h-2.5 rounded-full bg-green-500"
+                          style="width: 98%"
+                        ></div>
+                      </div>
+                      <p
+                        id="report-uptime-text"
+                        class="text-right text-sm font-bold"
+                      >
+                        98%
+                      </p>
+                      <hr class="my-4" />
+                      <p class="mb-2 font-bold">Disconnect Frequency</p>
+                      <p id="report-disconnect" class="text-2xl font-bold">
+                        3 <span class="text-base font-normal">times</span>
+                      </p>
+                      <p
+                        id="report-disconnect-period"
+                        class="text-gray-500 text-xs"
+                      >
+                        Today
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget flex-1 lg:col-span-2">
+                  <div class="widget-header">Video Analytics Statistics</div>
+                  <div class="widget-body flex flex-col">
+                    <div class="mb-4 grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p class="text-gray-500 text-sm">Total Detections</p>
+                        <p
+                          id="report-total-violations"
+                          class="text-2xl font-bold"
+                        >
+                          152
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-gray-500 text-sm">Top Violation Type</p>
+                        <p id="report-top-violation" class="text-lg font-bold">
+                          Mask Not Worn
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-gray-500 text-sm">Peak Violation Time</p>
+                        <p id="report-top-time" class="text-lg font-bold">
+                          14:00-15:00
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      class="flex min-h-0 flex-1 items-center justify-center"
+                    >
+                      <canvas
+                        id="violationTypeChart"
+                        class="max-h-full"
+                      ></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Architecture Page -->
+          <div id="architecture-page" class="page-content hidden">
+            <div class="widget">
+              <div class="widget-header">System Architecture</div>
+              <div class="widget-body">
+                <div class="arch-layer mb-4">
+                  <h3 class="mb-4 text-center text-lg font-bold">
+                    Hardware Layer
+                  </h3>
+                  <div class="flex items-center">
+                    <div class="arch-group">
+                      <div class="arch-title">Input (Sensing)</div>
+                      <div class="arch-box">
+                        IoT Sensors (Gas, Temp, Humidity)
+                      </div>
+                      <div class="arch-box">CCTV Cameras / NVR</div>
+                    </div>
+                    <div class="arch-arrow mx-4">
+                      <i class="fas fa-arrow-right fa-2x"></i>
+                    </div>
+                    <div class="arch-group">
+                      <div class="arch-title">Processing</div>
+                      <div class="arch-box">IoT Gateway</div>
+                      <div class="arch-box">AI Edge Box</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="arch-arrow">
+                  <i class="fas fa-arrow-down fa-2x"></i>
+                </div>
+                <div class="arch-layer mt-4">
+                  <h3 class="mb-4 text-center text-lg font-bold">
+                    Software Layer (On Ultivis Platform)
+                  </h3>
+                  <div class="flex items-start">
+                    <div class="arch-group">
+                      <div class="arch-title">Data Processing</div>
+                      <div class="arch-box">Sensor Data Filtering</div>
+                      <div class="arch-box">Real-time Data Stream</div>
+                    </div>
+                    <div class="arch-group mx-4">
+                      <div class="arch-title">Core Algorithm</div>
+                      <div class="arch-box">Event Detection Logic</div>
+                      <div class="arch-box">AI Video Analytics</div>
+                    </div>
+                    <div class="arch-group">
+                      <div class="arch-title">Services & Applications</div>
+                      <div class="arch-box">Integrated Dashboard</div>
+                      <div class="arch-box">Alerts (SMS, App Push)</div>
+                      <div class="arch-box">Emergency Broadcast (Optional)</div>
+                      <div class="arch-box">Reporting Engine</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div
+      id="report-modal"
+      class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div
+        class="w-full max-w-2xl transform rounded-lg bg-white shadow-xl transition-all"
+      >
+        <div class="flex items-center justify-between border-b p-4">
+          <h3 id="report-modal-title" class="text-lg font-bold">
+            Kitchen #1 Summary Safety Report
+          </h3>
+          <button
+            id="close-modal-btn"
+            class="text-2xl font-bold hover:text-red-500"
+          >
+            &times;
+          </button>
+        </div>
+        <div
+          id="report-content"
+          class="printable-area max-h-[70vh] overflow-y-auto p-6"
+        ></div>
+        <div class="modal-footer border-t p-4 text-right">
+          <button id="print-report-btn" class="primary-btn">
+            <i class="fas fa-print mr-2"></i>Print / Save as PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const elements = {
+        time: document.getElementById('current-time'),
+        eventLogBody: document.getElementById('event-log-body'),
+        totalStaff: document.getElementById('total-staff'),
+        compliantStaff: document.getElementById('compliant-staff'),
+        nonCompliantStaff: document.getElementById('non-compliant-staff'),
+        violationBadge: document.getElementById('violation-count-badge'),
+        cctvFeed3: document.getElementById('cctv-feed-3'),
+        sidebarNav: document.getElementById('sidebar-nav'),
+        areaPanel: document.getElementById('area-panel'),
+        dashboardSensorSummary: document.getElementById(
+          'dashboard-sensor-summary'
+        ),
+        trendChartContainer: document.getElementById('trend-chart-container'),
+        sensorEventLog: document.getElementById('sensor-event-log'),
+        recommendationsLog: document.getElementById('recommendations-log'),
+        reportFilterContainer: document.getElementById(
+          'report-filter-container'
+        ),
+        generateReportBtn: document.getElementById('generate-report-btn'),
+        reportModal: document.getElementById('report-modal'),
+        closeModalBtn: document.getElementById('close-modal-btn'),
+        reportContent: document.getElementById('report-content'),
+        printReportBtn: document.getElementById('print-report-btn'),
+        reportModalTitle: document.getElementById('report-modal-title'),
+        reportScore: document.getElementById('report-score'),
+        reportScoreComparison: document.getElementById(
+          'report-score-comparison'
+        ),
+        reportUptimeBar: document.getElementById('report-uptime-bar'),
+        reportUptimeText: document.getElementById('report-uptime-text'),
+        reportDisconnect: document.getElementById('report-disconnect'),
+        reportDisconnectPeriod: document.getElementById(
+          'report-disconnect-period'
+        ),
+        reportTotalViolations: document.getElementById(
+          'report-total-violations'
+        ),
+        reportTopViolation: document.getElementById('report-top-violation'),
+        reportTopTime: document.getElementById('report-top-time'),
+        cameraEventLog: document.getElementById('camera-event-log'),
+        cameraStatusGrid: document.getElementById('camera-status-grid'),
+        evacBtn: document.getElementById('evac-btn'),
+        alertBtn: document.getElementById('alert-btn'),
+      };
+
+      const SENSOR_TICK_INTERVAL_S = 3;
+      const CHART_DATA_LENGTH = 20;
+      const SENSOR_30MIN_TICKS = 600; // 30min * 60s / 3s_per_tick
+      let historyLabels = [];
+      let state = {
+        areas: [
+          {
+            name: 'Main Kitchen',
+            sensors: [
+              {
+                type: 'gas',
+                id: 'Gas-01',
+                value: 50,
+                status: 'normal',
+                warningTicks: 0,
+                alertTicks: 0,
+                history: [],
+              },
+              {
+                type: 'humidity',
+                id: 'Humidity-01',
+                value: 55,
+                status: 'normal',
+                highTicks: 0,
+                lowTicks: 0,
+                history: [],
+              },
+            ],
+          },
+          {
+            name: 'Storage Room',
+            sensors: [
+              {
+                type: 'humidity',
+                id: 'Humidity-02',
+                value: 58,
+                status: 'normal',
+                highTicks: 0,
+                lowTicks: 0,
+                history: [],
+              },
+            ],
+          },
+          {
+            name: 'Freezer Area',
+            sensors: Array.from({ length: 4 }, (_, i) => ({
+              type: 'freezer',
+              id: `Freezer-${i + 1}`,
+              value: -18.5,
+              status: 'normal',
+              warningTicks: 0,
+              criticalTicks: 0,
+              history: [],
+            })),
+          },
+          {
+            name: 'Chiller Area',
+            sensors: Array.from({ length: 4 }, (_, i) => ({
+              type: 'chiller',
+              id: `Chiller-${i + 1}`,
+              value: 3.2,
+              status: 'normal',
+              warningTicks: 0,
+              criticalTicks: 0,
+              history: [],
+            })),
+          },
+        ],
+        cameras: [
+          {
+            id: 'CCTV-01',
+            name: 'Main Hall',
+            status: 'Online',
+            recording: true,
+          },
+          { id: 'CCTV-02', name: 'Storage', status: 'Online', recording: true },
+          {
+            id: 'CCTV-03',
+            name: 'Prepping Area',
+            status: 'Online',
+            recording: true,
+          },
+          {
+            id: 'CCTV-04',
+            name: 'Loading Dock',
+            status: 'Offline',
+            recording: false,
+          },
+        ],
+        activeReportPeriod: 'daily',
+        selectedArea: 'Main Kitchen',
+        staff: { total: 12, compliant: 12 },
+      };
+      let charts = {};
+
+      function createChart(ctx, type, data, options) {
+        return new Chart(ctx, { type, data, options });
+      }
+
+      function initializeCharts() {
+        const violationCtx = document
+          .getElementById('violationTypeChart')
+          .getContext('2d');
+        charts.violation = createChart(
+          violationCtx,
+          'bar',
+          {
+            labels: [
+              'Mask Not Worn',
+              'Hairnet Not Worn',
+              'Gloves Not Worn',
+              'Uniform Not Worn',
+            ],
+            datasets: [
+              {
+                label: 'Violation Count',
+                data: [],
+                backgroundColor: ['#dc3545', '#ffc107', '#fd7e14', '#6c757d'],
+              },
+            ],
+          },
+          {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+          }
+        );
+      }
+
+      // function updateTime() { elements.time.textContent = new Date().toLocaleString('en-US'); }
+      function addEventLog(columns, level) {
+        const tbody = elements.eventLogBody;
+        if (!tbody) return;
+        const row = tbody.insertRow(0);
+        row.className =
+          level === 'danger'
+            ? 'alert-row-danger'
+            : level === 'warning'
+              ? 'alert-row-warning'
+              : '';
+        const iconCell = row.insertCell();
+        const icon = document.createElement('i');
+        icon.className = `fas ${columns[1].startsWith('CAM') ? 'fa-video text-red-500' : 'fa-microchip text-yellow-500'} mr-2`;
+        iconCell.appendChild(icon);
+
+        columns.forEach((text, index) => {
+          const cell = row.insertCell();
+          cell.textContent = text;
+          cell.className = `py-1 px-2 ${index === 0 ? 'text-gray-500' : ''}`;
+        });
+        if (tbody.rows.length > 50) tbody.deleteRow(50);
+      }
+
+      function addSensorEventLog(areaName, message, level) {
+        const colors = { warning: 'yellow', danger: 'red', alert: 'orange' };
+        const eventHtml = `<div class="p-2 rounded-md bg-${colors[level]}-50 border-l-4 border-${colors[level]}-400"><p class="font-bold text-sm text-${colors[level]}-700">[${level.toUpperCase()}] ${areaName}</p><p class="text-xs text-gray-600">${message}</p><p class="text-xs text-gray-400">${new Date().toLocaleTimeString()}</p></div>`;
+        elements.sensorEventLog.insertAdjacentHTML('afterbegin', eventHtml);
+        if (elements.sensorEventLog.children.length > 10) {
+          elements.sensorEventLog.removeChild(
+            elements.sensorEventLog.lastChild
+          );
+        }
+      }
+
+      function updateDashboardSummary() {
+        elements.dashboardSensorSummary.innerHTML = '';
+        const sensorTypes = {
+          gas: { name: 'Gas Leak', unit: 'PPM' },
+          freezer: { name: 'Meat Freezer', unit: '°C' },
+          chiller: { name: 'Veggie Chiller', unit: '°C' },
+          humidity: { name: 'Kitchen Humidity', unit: '%' },
+        };
+
+        Object.keys(sensorTypes).forEach((type) => {
+          const sensors = state.areas
+            .flatMap((a) => a.sensors)
+            .filter((s) => s.type === type);
+          if (sensors.length === 0) return;
+
+          const overallStatus = sensors.some((s) => s.status !== 'normal')
+            ? 'Warning'
+            : 'Normal';
+          const statusColor =
+            overallStatus === 'Normal' ? 'text-green-600' : 'text-yellow-600';
+
+          const recentHistory = sensors.flatMap((s) =>
+            s.history.slice(-SENSOR_30MIN_TICKS)
+          );
+          const avg =
+            recentHistory.reduce((a, b) => a + b, 0) /
+            (recentHistory.length || 1);
+
+          const summaryHtml = `
+                    <div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="font-bold">${sensorTypes[type].name}</span>
+                            <span class="font-bold ${statusColor}">${overallStatus}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">30-Min Avg: <span class="font-semibold">${avg.toFixed(1)} ${sensorTypes[type].unit}</span></p>
+                    </div>
+                `;
+          elements.dashboardSensorSummary.insertAdjacentHTML(
+            'beforeend',
+            summaryHtml
+          );
+        });
+
+        elements.totalStaff.textContent = state.staff.total;
+        elements.compliantStaff.textContent = state.staff.compliant;
+        elements.nonCompliantStaff.textContent =
+          state.staff.total - state.staff.compliant;
+      }
+
+      function updateSensorPage() {
+        elements.areaPanel.innerHTML = '';
+        state.areas.forEach((area) => {
+          let overallStatus = 'normal';
+          if (
+            area.sensors.some(
+              (s) => s.status === 'danger' || s.status === 'alert'
+            )
+          ) {
+            overallStatus = 'danger';
+          } else if (area.sensors.some((s) => s.status === 'warning')) {
+            overallStatus = 'warning';
+          }
+          const statusColor = {
+            normal: 'border-green-500',
+            warning: 'border-yellow-500',
+            danger: 'border-red-500',
+          }[overallStatus];
+          const sensorReadings = area.sensors
+            .map(
+              (s) =>
+                `<p class="text-sm">${s.id}: <span class="font-bold">${s.value.toFixed(1)} ${s.type === 'gas' ? 'PPM' : s.type === 'humidity' ? '%' : '°C'}</span></p>`
+            )
+            .join('');
+
+          const cardHtml = `
+                    <div class="widget p-4 area-card ${statusColor} ${area.name === state.selectedArea ? 'selected' : ''}" data-area="${area.name}">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold">${area.name}</h4>
+                            <div class="status-dot ${statusColor.replace('border', 'bg')}"></div>
+                        </div>
+                        <div class="space-y-1">${sensorReadings}</div>
+                    </div>
+                `;
+          elements.areaPanel.insertAdjacentHTML('beforeend', cardHtml);
+        });
+      }
+
+      function updateRecommendations() {
+        elements.recommendationsLog.innerHTML = '';
+        const recommendations = [];
+        const allSensors = state.areas.flatMap((a) => a.sensors);
+
+        if (allSensors.some((s) => s.type === 'gas' && s.status !== 'normal')) {
+          recommendations.push({
+            text: 'Gas leak detected. Ventilation and line check required.',
+            level: 'danger',
+          });
+        }
+        if (
+          allSensors.some(
+            (s) =>
+              (s.type === 'freezer' || s.type === 'chiller') &&
+              s.status !== 'normal'
+          )
+        ) {
+          recommendations.push({
+            text: 'Freezer/Chiller temperature anomaly. Equipment check required.',
+            level: 'warning',
+          });
+        }
+        if (
+          allSensors.some((s) => s.type === 'humidity' && s.status !== 'normal')
+        ) {
+          recommendations.push({
+            text: 'Abnormal humidity. Ventilation system check required.',
+            level: 'warning',
+          });
+        }
+
+        if (recommendations.length === 0) {
+          elements.recommendationsLog.innerHTML = `<div class="p-2 rounded-md bg-green-50 border-l-4 border-green-400"><p class="font-bold text-sm text-green-700">All systems are operating normally.</p></div>`;
+        } else {
+          recommendations.forEach((rec) => {
+            const colors = { warning: 'yellow', danger: 'red' };
+            const recHtml = `<div class="p-2 rounded-md bg-${colors[rec.level]}-50 border-l-4 border-${colors[rec.level]}-400"><p class="font-bold text-sm text-${colors[rec.level]}-700">${rec.text}</p></div>`;
+            elements.recommendationsLog.insertAdjacentHTML(
+              'beforeend',
+              recHtml
+            );
+          });
+        }
+      }
+
+      function updateTrendChart() {
+        const area = state.areas.find((a) => a.name === state.selectedArea);
+        if (!area) return;
+
+        elements.trendChartContainer.innerHTML = ''; // Clear previous charts
+
+        const colors = [
+          '#1c7ed6',
+          '#dc3545',
+          '#ffc107',
+          '#28a745',
+          '#6f42c1',
+          '#fd7e14',
+        ];
+        const staticLabels = [
+          '08:00',
+          '09:00',
+          '10:00',
+          '11:00',
+          '12:00',
+          '13:00',
+          '14:00',
+          '15:00',
+        ];
+
+        area.sensors.forEach((sensor, index) => {
+          const chartWidget = document.createElement('div');
+          chartWidget.className = 'widget';
+
+          const chartHeader = document.createElement('div');
+          chartHeader.className = 'widget-header';
+          chartHeader.textContent = `Trend Chart (${sensor.id})`;
+
+          const chartBody = document.createElement('div');
+          chartBody.className = 'widget-body';
+
+          const canvas = document.createElement('canvas');
+          chartBody.appendChild(canvas);
+          chartWidget.appendChild(chartHeader);
+          chartWidget.appendChild(chartBody);
+          elements.trendChartContainer.appendChild(chartWidget);
+
+          new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: staticLabels,
+              datasets: [
+                {
+                  label: sensor.id,
+                  data: Array.from(
+                    { length: 8 },
+                    () =>
+                      Math.random() * 50 +
+                      (sensor.type === 'freezer'
+                        ? -20
+                        : sensor.type === 'chiller'
+                          ? 5
+                          : 50)
+                  ), // Static mock data
+                  borderColor: colors[index % colors.length],
+                  tension: 0.4,
+                  fill: false,
+                  pointRadius: 2,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+              },
+            },
+          });
+        });
+      }
+
+      function addCameraEventLog(item, confidence) {
+        const now = new Date();
+        const eventHtml = `<div class="border rounded-md p-3 bg-red-50"><div class="flex items-start space-x-3"><img src="https://placehold.co/120x68/dc3545/FFFFFF?text=Event" class="rounded w-24 h-16 object-cover"><div class="flex-1"><p class="font-bold text-red-600">${item} Not Worn</p><p class="text-xs text-gray-500">CAM-03 / Confidence: ${confidence}</p><p class="text-xs text-gray-500">${now.toLocaleString('en-US')}</p></div></div></div>`;
+        elements.cameraEventLog.insertAdjacentHTML('afterbegin', eventHtml);
+        if (elements.cameraEventLog.children.length > 15) {
+          elements.cameraEventLog.removeChild(
+            elements.cameraEventLog.lastChild
+          );
+        }
+      }
+
+      function updateCameraStatusPage() {
+        if (!elements.cameraStatusGrid) return;
+        elements.cameraStatusGrid.innerHTML = '';
+        state.cameras.forEach((cam) => {
+          const isOnline = cam.status === 'Online';
+          const statusColor = isOnline ? 'text-green-600' : 'text-red-600';
+          const recordingText = cam.recording ? 'Recording' : 'Not Recording';
+          const statusHtml = `
+                    <div class="flex items-center p-2 border-b">
+                        <div class="status-dot ${isOnline ? 'status-normal-bg' : 'status-danger-bg'} mr-3"></div>
+                        <div class="flex-1">
+                            <p class="font-bold">${cam.id} (${cam.name})</p>
+                            <p class="text-xs text-gray-500">${recordingText}</p>
+                        </div>
+                        <p class="text-sm font-semibold ${statusColor}">${cam.status}</p>
+                    </div>
+                `;
+          elements.cameraStatusGrid.insertAdjacentHTML('beforeend', statusHtml);
+        });
+      }
+
+      function populateStaticLogs() {
+        const now = new Date();
+        const eventLogData = [
+          {
+            time: new Date(now.getTime() - 2 * 60000).toLocaleTimeString(
+              'en-US',
+              { hour12: false }
+            ),
+            device: 'CAM-03',
+            event: 'Mask Not Worn',
+            level: 'danger',
+          },
+          {
+            time: new Date(now.getTime() - 5 * 60000).toLocaleTimeString(
+              'en-US',
+              { hour12: false }
+            ),
+            device: 'Freezer-02',
+            event: 'CRITICAL',
+            level: 'danger',
+          },
+          {
+            time: new Date(now.getTime() - 10 * 60000).toLocaleTimeString(
+              'en-US',
+              { hour12: false }
+            ),
+            device: 'Gas-01',
+            event: 'WARNING',
+            level: 'warning',
+          },
+          {
+            time: new Date(now.getTime() - 12 * 60000).toLocaleTimeString(
+              'en-US',
+              { hour12: false }
+            ),
+            device: 'CAM-01',
+            event: 'Hairnet Not Worn',
+            level: 'danger',
+          },
+          {
+            time: new Date(now.getTime() - 15 * 60000).toLocaleTimeString(
+              'en-US',
+              { hour12: false }
+            ),
+            device: 'Chiller-04',
+            event: 'WARNING',
+            level: 'warning',
+          },
+        ];
+        eventLogData.forEach((log) =>
+          addEventLog([log.time, log.device, log.event], log.level)
+        );
+
+        const cameraLogData = [
+          { item: 'Mask', confidence: '0.92' },
+          { item: 'Hairnet', confidence: '0.88' },
+        ];
+        cameraLogData.forEach((log) =>
+          addCameraEventLog(log.item, log.confidence)
+        );
+
+        const sensorEventData = [
+          {
+            area: 'Freezer Area',
+            message: 'Freezer-02 status changed to critical',
+            level: 'danger',
+          },
+          {
+            area: 'Main Kitchen',
+            message: 'Gas-01 status changed to warning',
+            level: 'warning',
+          },
+        ];
+        sensorEventData.forEach((log) =>
+          addSensorEventLog(log.area, log.message, log.level)
+        );
+      }
+
+      function simulateData() {
+        state.areas.forEach((area) => {
+          area.sensors.forEach((sensor) => {
+            let previousStatus = sensor.status;
+            if (sensor.type === 'gas') {
+              if (Math.random() < 0.01) {
+                sensor.value = 250 + Math.random() * 450;
+              } else {
+                sensor.value = Math.max(
+                  30,
+                  Math.min(150, sensor.value + (Math.random() - 0.5) * 10)
+                );
+              }
+              if (sensor.value > 600) {
+                sensor.status = 'danger';
+              } else if (sensor.value > 400) {
+                sensor.alertTicks++;
+                if (sensor.alertTicks * SENSOR_TICK_INTERVAL_S > 5)
+                  sensor.status = 'alert';
+              } else if (sensor.value > 200) {
+                sensor.warningTicks++;
+                if (sensor.warningTicks * SENSOR_TICK_INTERVAL_S > 10)
+                  sensor.status = 'warning';
+              } else {
+                sensor.warningTicks = 0;
+                sensor.alertTicks = 0;
+                sensor.status = 'normal';
+              }
+            }
+            // ... other sensor types simulation
+            sensor.history.push(sensor.value);
+            if (sensor.history.length > SENSOR_30MIN_TICKS)
+              sensor.history.shift();
+
+            if (
+              sensor.status !== previousStatus &&
+              sensor.status !== 'normal'
+            ) {
+              addSensorEventLog(
+                area.name,
+                `${sensor.id} status changed to ${sensor.status}`,
+                sensor.status
+              );
+              addEventLog(
+                [
+                  new Date().toLocaleTimeString(),
+                  sensor.id,
+                  sensor.status.toUpperCase(),
+                ],
+                sensor.status === 'danger' ? 'danger' : 'warning'
+              );
+            }
+          });
+        });
+
+        if (Math.random() < 0.08) {
+          const ppeItems = ['Mask', 'Hairnet', 'Gloves'];
+          const item = ppeItems[Math.floor(Math.random() * ppeItems.length)];
+          const confidence = (0.75 + Math.random() * 0.24).toFixed(2);
+          addEventLog(
+            [new Date().toLocaleTimeString(), 'CAM-03', `${item} Not Worn`],
+            'danger'
+          );
+          addCameraEventLog(item, confidence);
+          elements.cctvFeed3.src = `https://placehold.co/640x360/000000/dc3545?text=VIOLATION+DETECTED`;
+          elements.violationBadge.classList.remove('hidden');
+          elements.violationBadge.textContent = 'Violation';
+          state.staff.compliant = Math.max(0, state.staff.compliant - 1);
+        } else {
+          elements.cctvFeed3.src = `https://placehold.co/640x360/000000/FFFFFF?text=CAM-03`;
+          elements.violationBadge.classList.add('hidden');
+          if (
+            state.staff.compliant < state.staff.total &&
+            Math.random() < 0.1
+          ) {
+            state.staff.compliant++;
+          }
+        }
+
+        updateDashboardSummary();
+        updateSensorPage();
+        updateRecommendations();
+        updateCameraStatusPage();
+      }
+
+      // --- Sidebar Toggle ---
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+      const sidebarToggleIconClose = document.getElementById(
+        'sidebar-toggle-icon-close'
+      );
+      const sidebarToggleIconOpen = document.getElementById(
+        'sidebar-toggle-icon-open'
+      );
+
+      if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('sidebar-closed');
+          sidebarToggleIconClose.classList.toggle('hidden');
+          sidebarToggleIconOpen.classList.toggle('hidden');
+        });
+      }
+
+      // --- 요소 ---
+      const lnb = document.getElementById('lnb');
+      const navLinks = lnb.querySelectorAll(
+        '.sidebar-item, .active-sidebar-item'
+      );
+
+      // --- 페이지 전환 로직 ---
+      function showPage(pageId) {
+        document
+          .querySelectorAll('.page-content')
+          .forEach((page) => page.classList.add('hidden'));
+        document.getElementById(pageId).classList.remove('hidden');
+
+        navLinks.forEach((link) => {
+          const isActive = link.dataset.target === pageId;
+          if (isActive) {
+            link.className = 'active-sidebar-item';
+          } else {
+            link.className = 'sidebar-item';
+          }
+        });
+      }
+
+      // --- 이벤트 리스너 ---
+      lnb.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetLink = e.target.closest(
+          '.sidebar-item, .active-sidebar-item'
+        );
+        if (targetLink && targetLink.dataset.target) {
+          showPage(targetLink.dataset.target);
+        }
+      });
+
+      elements.areaPanel.addEventListener('click', (e) => {
+        const card = e.target.closest('.area-card');
+        if (card) {
+          state.selectedArea = card.dataset.area;
+          updateSensorPage();
+          updateTrendChart();
+        }
+      });
+
+      const reportData = {
+        daily: {
+          score: 85,
+          comparison:
+            'vs Yesterday <span class="text-green-500 font-semibold">+2</span>',
+          uptime: 99,
+          disconnects: 2,
+          periodText: 'Today',
+          totalViolations: 15,
+          topViolation: 'Mask Not Worn',
+          topTime: '14:00-15:00',
+          chartData: [8, 3, 2, 2],
+        },
+        weekly: {
+          score: 78,
+          comparison:
+            'vs Last Week <span class="text-red-500 font-semibold">-4</span>',
+          uptime: 98,
+          disconnects: 21,
+          periodText: 'Last 7 Days',
+          totalViolations: 152,
+          topViolation: 'Mask Not Worn',
+          topTime: '14:00-15:00',
+          chartData: [85, 32, 25, 10],
+        },
+        monthly: {
+          score: 82,
+          comparison:
+            'vs Last Month <span class="text-green-500 font-semibold">+5</span>',
+          uptime: 97,
+          disconnects: 95,
+          periodText: 'Last 30 Days',
+          totalViolations: 680,
+          topViolation: 'Hairnet Not Worn',
+          topTime: '09:00-10:00',
+          chartData: [250, 280, 90, 60],
+        },
+      };
+
+      function updateReportView(period) {
+        const data = reportData[period];
+        elements.reportScore.innerHTML = `${data.score}<span class="text-2xl">/100</span>`;
+        elements.reportScoreComparison.innerHTML = data.comparison;
+        elements.reportUptimeBar.style.width = `${data.uptime}%`;
+        elements.reportUptimeText.innerText = `${data.uptime}%`;
+        elements.reportDisconnect.innerHTML = `${data.disconnects} <span class="text-base font-normal">times</span>`;
+        elements.reportDisconnectPeriod.innerText = data.periodText;
+        elements.reportTotalViolations.innerText = data.totalViolations;
+        elements.reportTopViolation.innerText = data.topViolation;
+        elements.reportTopTime.innerText = data.topTime;
+        charts.violation.data.datasets[0].data = data.chartData;
+        charts.violation.update();
+        state.activeReportPeriod = period;
+      }
+
+      elements.reportFilterContainer.addEventListener('click', (e) => {
+        const clickedBtn = e.target.closest('.filter-btn');
+        if (!clickedBtn) return;
+        elements.reportFilterContainer
+          .querySelectorAll('.filter-btn')
+          .forEach((btn) => btn.classList.remove('active'));
+        clickedBtn.classList.add('active');
+        updateReportView(clickedBtn.dataset.period);
+      });
+
+      function generateReportContent() {
+        const periodTextMap = {
+          daily: 'Daily',
+          weekly: 'Weekly',
+          monthly: 'Monthly',
+        };
+        const period = state.activeReportPeriod;
+        const data = reportData[period];
+        const reportDate = new Date().toLocaleString('en-US');
+        elements.reportModalTitle.innerText = `Kitchen #1 Summary Safety Report (${periodTextMap[period]})`;
+        return `
+                <div class="space-y-4 text-sm">
+                    <p><strong>Report Period:</strong> ${document.querySelector(`#report-filter-container .filter-btn[data-period=${period}]`).innerText}</p>
+                    <p><strong>Generated on:</strong> ${reportDate}</p>
+                    <hr>
+                    <h4 class="font-bold text-md">Overall Assessment</h4>
+                    <p>The overall safety score for this period is <strong>${data.score}/100</strong>. ${data.comparison}.</p>
+                    <hr>
+                    <h4 class="font-bold text-md">Sensor Data Analysis</h4>
+                    <ul class="list-disc list-inside">
+                        <li><strong>Sensor Uptime:</strong> ${data.uptime}%</li>
+                        <li><strong>Disconnects:</strong> ${data.disconnects} times</li>
+                        <li><strong>Key Alerts:</strong> Periodic warnings for freezer temperature require inspection.</li>
+                    </ul>
+                    <hr>
+                    <h4 class="font-bold text-md">Video Analytics Results</h4>
+                    <ul class="list-disc list-inside">
+                        <li><strong>Total PPE Violations:</strong> ${data.totalViolations}</li>
+                        <li><strong>Most Frequent Violation:</strong> ${data.topViolation}</li>
+                        <li><strong>Recommendation:</strong> Violations are concentrated around ${data.topTime}. Recommend reinforcing staff training and supervision during this period.</li>
+                    </ul>
+                </div>
+            `;
+      }
+
+      elements.generateReportBtn.addEventListener('click', () => {
+        elements.reportContent.innerHTML = generateReportContent();
+        elements.reportModal.classList.remove('hidden');
+      });
+
+      elements.closeModalBtn.addEventListener('click', () => {
+        elements.reportModal.classList.add('hidden');
+      });
+      elements.reportModal.addEventListener('click', (e) => {
+        if (e.target === elements.reportModal) {
+          elements.reportModal.classList.add('hidden');
+        }
+      });
+      elements.printReportBtn.addEventListener('click', () => {
+        window.print();
+      });
+
+      if (elements.evacBtn) {
+        elements.evacBtn.addEventListener('click', () =>
+          alert('Initiating evacuation broadcast.')
+        );
+      }
+      if (elements.alertBtn) {
+        elements.alertBtn.addEventListener('click', () =>
+          alert('Sending emergency alert to all staff.')
+        );
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeCharts();
+        // updateTime();
+        // setInterval(updateTime, 1000);
+        updateDashboardSummary(); // 초기 대시보드 요약 렌더링
+        updateRecommendations(); // 초기 권장사항 렌더링
+        populateStaticLogs(); // 초기 로그 데이터 생성
+        setInterval(simulateData, 3000);
+        updateReportView('daily');
+        updateSensorPage();
+        updateTrendChart();
+        updateCameraStatusPage();
+      });
+    </script>
+  </body>
+</html>
