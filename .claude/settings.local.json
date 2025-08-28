@@ -5,7 +5,9 @@
       "Bash(python:*)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Read(C:\\Users\\tjsdn\\OneDrive\\바탕 화면\\development\\frontend\\react-library/**)",
+      "Read(C:\\Users\\tjsdn\\OneDrive\\바탕 화면\\development\\frontend\\react-library/**)"
     ],
     "deny": []
   }
