@@ -1,0 +1,2637 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monnit-Ultivis - AIoT Safety Dashboard</title>
+    <script src="https://cdn-tailwindcss.vercel.app/"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- ES Module Shims for Three.js modules -->
+    <script async src="https://unpkg.com/es-module-shims@1.6.3"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      @import url('https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css');
+      
+      :root {
+        --color-primary: #0075ff;
+        --color-grayscale-100: #000000;
+        --color-grayscale-300: #666666;
+        --color-grayscale-1000: #ffffff;
+        --color-grayscale-900: #f8f8f8;
+        --color-grayscale-700: #eeeeee;
+        --color-background: #f8f8f8;
+      }
+
+      body {
+        font-family:
+          'SUIT',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--color-background);
+        color: #212529;
+        font-size: 14px;
+      }
+      .widget {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .widget-header {
+        padding: 1.5rem;
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 600; /* font-semibold */
+        color: #000000; /* text-black */
+      }
+      .widget-scroll-area {
+        flex: 1;
+        position: relative;
+        margin-right: 0.75rem;
+        margin-bottom: 0.75rem;
+        height: 100%;
+        padding-left: 1.5rem;
+        padding-bottom: 0.75rem;
+        padding-right: 0.75rem;
+        overflow-y: auto;
+      }
+
+      .widget-content {
+        height: fit-content;
+        padding-bottom: 0.75rem;
+      }
+
+      /* Custom scrollbar styling for widgets */
+      .widget-scroll-area::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .widget-scroll-area::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .widget-scroll-area::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 2px;
+        transition: background-color 0.2s;
+      }
+
+      .widget-scroll-area:hover::-webkit-scrollbar-thumb {
+        background-color: #d1d5db;
+      }
+
+      .widget-scroll-area::-webkit-scrollbar-thumb:hover {
+        background-color: #9ca3af;
+      }
+
+      .widget-body {
+        padding: 1.25rem;
+      }
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .status-normal {
+        background-color: #28a745;
+      }
+      .status-warning {
+        background-color: #ffc107;
+      }
+      .status-critical {
+        background-color: #dc3545;
+      }
+      .kpi-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+      .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        color: #495057;
+        transition:
+          background-color 0.2s,
+          color 0.2s;
+      }
+      .nav-link:hover {
+        background-color: #f1f3f5;
+      }
+      .nav-link.active {
+        background-color: #e7f5ff;
+        color: #1c7ed6;
+      }
+      .nav-link i {
+        width: 20px;
+        margin-right: 0.75rem;
+      }
+
+      .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        margin: 2px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 500;
+        color: #000;
+        transition: all 0.15s ease-in-out;
+      }
+
+      .active-sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        margin: 2px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 500;
+        background-color: #e5f1ff;
+        color: #0075ff;
+      }
+
+      .sidebar-child-item {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .active-sidebar-item.sidebar-child-item {
+        color: #0075ff;
+      }
+
+      .sidebar-category {
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      #sidebar {
+        transition:
+          transform 0.3s ease,
+          margin-left 0.3s ease;
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+      }
+
+      #sidebar.sidebar-closed {
+        transform: translateX(-100%);
+        margin-left: -280px;
+      }
+
+      .text-grayscale-300 {
+        color: var(--color-grayscale-300);
+      }
+
+      .prose h3 {
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #343a40;
+      }
+      .prose h4 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #495057;
+      }
+      .prose p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+      }
+      .prose ul,
+      .prose ol {
+        margin-left: 1.25rem;
+        margin-bottom: 1rem;
+      }
+      .prose li {
+        margin-bottom: 0.5rem;
+      }
+      .prose strong {
+        color: #1c7ed6;
+      }
+
+      .cctv-thumbnail.active {
+        border-color: #1c7ed6;
+        box-shadow: 0 0 0 2px #1c7ed6;
+      }
+
+      #three-container canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      #sensor-tooltip {
+        position: absolute;
+        display: none;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        border-radius: 4px;
+        pointer-events: none; /* Crucial */
+        font-size: 12px;
+        z-index: 100;
+        white-space: nowrap;
+        transform: translate(-50%, -120%);
+      }
+      .nav-submenu-link {
+        padding-left: 3rem; /* Indent submenu items */
+        font-size: 0.875rem;
+        color: #495057;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      .nav-submenu-link.active {
+        color: #1c7ed6;
+        background-color: #e7f5ff;
+        font-weight: 600;
+      }
+      .nav-link .fa-chevron-down {
+        transition: transform 0.2s ease-in-out;
+      }
+      .nav-link .rotate-180 {
+        transform: rotate(180deg);
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <div class="h-screen" style="background-color: var(--color-background);">
+      <!-- Header -->
+      <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50 h-16">
+        <div class="flex items-center justify-between px-5 h-full">
+          <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="p-0" id="sidebar-toggle-btn">
+              <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <div class="flex items-center gap-2">
+              <a href="../index.html">
+                <img src="https://github.com/ultivis-iot/demo/blob/main/assets/logo-nav.png?raw=true" alt="Ultivis" class="max-h-16 w-auto">
+              </a>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 truncate hidden" id="header-title">
+              통합 대시보드
+            </h1>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="p-2 text-gray-500 hover:text-gray-700 transition-colors">
+              <i data-lucide="bell" class="w-5 h-5 opacity-0"></i>
+            </button>
+            <!-- Separator/Divider -->
+            <div class="h-3 w-px bg-gray-300 dark:bg-gray-600"></div>
+            <div class="relative">
+              <button class="flex items-center gap-1.5 px-0 py-1 rounded hover:bg-gray-100 hover:font-bold transition-colors group">
+                <i data-lucide="user" class="w-6 h-6 text-gray-600 group-hover:text-blue-500"></i>
+                <span class="hidden sm:block text-gray-600 group-hover:text-blue-500 text-lg font-normal">사용자</span>
+              </button>
+              <!-- User menu dropdown can be added here -->
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Main Container -->
+      <div class="relative top-16 flex h-[calc(100vh-4rem)] overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="z-0 mb-5 mt-5 ml-5 flex flex-col rounded-2xl border border-solid border-gray-200 bg-white text-lg font-medium shadow-lg transition-transform duration-300 ease" style="width: 280px; min-width: 280px; max-width: 280px;">
+          <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+            <nav class="p-4">
+              <ul id="main-nav" class="flex flex-col gap-1.5">
+                <li class="active-sidebar-item" onclick="switchPage('dashboard-page', this)" data-target="dashboard-page" data-menu-id="dashboard">
+                  <i data-lucide="house" class="w-6 h-6 flex-shrink-0"></i>
+                  <span class="flex-grow truncate">통합 대시보드</span>
+                </li>
+                <li class="sidebar-item" onclick="switchPage('digital-twin-page', this)" data-target="digital-twin-page" data-menu-id="digital-twin">
+                  <i data-lucide="move-3d" class="w-6 h-6 flex-shrink-0"></i>
+                  <span class="flex-grow truncate">3D 통합 관제</span>
+                </li>
+                <li class="sidebar-item" onclick="switchPage('kitchen-status-page', this)" data-target="kitchen-status-page" data-menu-id="worker-env">
+                  <i data-lucide="hard-hat" class="w-6 h-6 flex-shrink-0"></i>
+                  <span class="flex-grow truncate">작업자 환경 관리</span>
+                </li>
+                <!-- Collapsible Safety Menu -->
+                <li class="sidebar-category">
+                  <button onclick="toggleCategory('safety')" class="sidebar-item w-full flex justify-between">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="shield" class="w-6 h-6 flex-shrink-0"></i>
+                      <span class="flex-grow truncate text-left">산업 안전</span>
+                    </div>
+                    <i data-lucide="chevron-down" class="w-6 h-6 transition-transform" id="chevron-safety"></i>
+                  </button>
+                  <ul id="category-safety" class="mt-1 hidden">
+                    <div class="pl-2">
+                      <li class="sidebar-item sidebar-child-item" onclick="switchPage('cctv-log-page', this)" data-target="cctv-log-page" data-cctv-filter="화재" data-menu-id="fire-safety">
+                        <i data-lucide="flame" class="w-6 h-6 flex-shrink-0"></i>
+                        <span class="flex-grow truncate">화재 감지 시스템</span>
+                      </li>
+                    </div>
+                    <div class="pl-2">
+                      <li class="sidebar-item sidebar-child-item" onclick="switchPage('cctv-log-page', this)" data-target="cctv-log-page" data-cctv-filter="작업자" data-menu-id="worker-safety">
+                        <i data-lucide="user-check" class="w-6 h-6 flex-shrink-0"></i>
+                        <span class="flex-grow truncate">작업자 안전 관리</span>
+                      </li>
+                    </div>
+                    <div class="pl-2">
+                      <li class="sidebar-item sidebar-child-item" onclick="switchPage('cctv-log-page', this)" data-target="cctv-log-page" data-cctv-filter="위험구역" data-menu-id="danger-zone">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 flex-shrink-0"></i>
+                        <span class="flex-grow truncate">위험 구역 출입 관리</span>
+                      </li>
+                    </div>
+                  </ul>
+                </li>
+                <li class="sidebar-item" onclick="switchPage('ai-report-page', this)" data-target="ai-report-page" data-menu-id="ai-report">
+                  <i data-lucide="bot" class="w-6 h-6 flex-shrink-0"></i>
+                  <span class="flex-grow truncate">AI 리포트</span>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col py-5 duration-300" style="background-color: var(--color-background);">
+          <!-- Page Title for Desktop -->
+          <div class="w-full py-3 pl-5 text-3xl font-bold text-gray-800" id="page-title-desktop">
+            통합 대시보드
+          </div>
+          <div class="relative flex min-h-0 flex-1 flex-col">
+            <div class="flex-1 px-5 overflow-y-auto">
+          <!-- Dashboard Page -->
+          <div id="dashboard-page" class="page-content">
+            <div
+              id="kpi-card-container"
+              class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+            ></div>
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div class="space-y-4 lg:col-span-2">
+                <div class="widget">
+                  <div class="widget-header">AI 예지보전 알림</div>
+                  <div class="widget-scroll-area">
+                    <div
+                      id="maintenance-schedule"
+                      class="widget-content space-y-4"
+                    ></div>
+                  </div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header flex items-center justify-between">
+                    <span>최근 CCTV 이벤트</span>
+                    <button
+                      class="more-cctv-events-btn text-grayscale-300"
+                      onclick="switchPage('cctv-log-page')"
+                      title="Navigate to link"
+                    >
+                      <i data-lucide="external-link" class="w-6 h-6"></i>
+                    </button>
+                  </div>
+                  <div class="widget-scroll-area">
+                    <div id="cctv-event-body" class="widget-content"></div>
+                  </div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">주요 센서 현황</div>
+                  <div class="widget-scroll-area">
+                    <div
+                      class="widget-content grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+                    >
+                    <div
+                      id="s1-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S1"
+                    ></div>
+                    <div
+                      id="s2-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S2"
+                    ></div>
+                    <div
+                      id="s3-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S3"
+                    ></div>
+                    <div
+                      id="s4-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S4"
+                    ></div>
+                    <div
+                      id="s5-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S5"
+                    ></div>
+                    <div
+                      id="s6-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S6"
+                    ></div>
+                    <div
+                      id="s7-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S7"
+                    ></div>
+                    <div
+                      id="s8-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S8"
+                    ></div>
+                    <div
+                      id="s9-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S9"
+                    ></div>
+                    <div
+                      id="s10-widget-dash"
+                      class="widget hover:bg-gray-50 cursor-pointer p-3 transition-colors"
+                      data-sensor-type="S10"
+                    ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-4 lg:col-span-1">
+                <div class="widget">
+                  <div class="widget-header">현장 관리자 정보</div>
+                  <div class="widget-scroll-area">
+                    <div id="manager-info" class="widget-content space-y-2"></div>
+                  </div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">실시간 알림 현황</div>
+                  <div class="widget-scroll-area" style="height: 300px;">
+                    <div
+                      id="local-alert-manager"
+                      class="widget-content space-y-2"
+                    ></div>
+                  </div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">안전 수칙 (SOP)</div>
+                  <div class="widget-scroll-area" style="height: 160px;">
+                    <div
+                      id="sop-links"
+                      class="widget-content space-y-2"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D Digital Twin Page -->
+          <div id="digital-twin-page" class="page-content hidden">
+            <div class="relative h-[calc(100vh-164px)] w-full">
+              <div
+                id="three-container"
+                class="bg-gray-200 h-full w-full"
+              ></div>
+              <div
+                class="absolute left-4 top-4 space-y-2 rounded-lg bg-white/80 p-3 shadow-lg backdrop-blur-sm"
+              >
+                <h4 class="text-sm font-bold">층별 보기</h4>
+                <div
+                  id="floor-controls"
+                  class="flex flex-col space-y-1 text-sm"
+                >
+                  <label class="flex cursor-pointer items-center space-x-2"
+                    ><input
+                      type="checkbox"
+                      data-floor="2"
+                      class="floor-toggle"
+                      checked
+                    /><span>3층</span></label
+                  >
+                  <label class="flex cursor-pointer items-center space-x-2"
+                    ><input
+                      type="checkbox"
+                      data-floor="1"
+                      class="floor-toggle"
+                      checked
+                    /><span>2층</span></label
+                  >
+                  <label class="flex cursor-pointer items-center space-x-2"
+                    ><input
+                      type="checkbox"
+                      data-floor="0"
+                      class="floor-toggle"
+                      checked
+                    /><span>1층</span></label
+                  >
+                </div>
+              </div>
+              <div id="sensor-tooltip"></div>
+            </div>
+          </div>
+
+          <!-- Sensor List Page (Worker Env Management) -->
+          <div id="kitchen-status-page" class="page-content hidden">
+            <div class="widget">
+              <div class="widget-header flex items-center justify-between">
+                <span class="font-semibold">작업자 환경 센서 목록</span>
+                <div class="flex items-center space-x-2 text-sm">
+                  <label for="sensor-status-filter">상태:</label>
+                  <select
+                    id="sensor-status-filter"
+                    class="bg-gray-50 border-gray-300 text-gray-900 block rounded-lg border p-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="all">전체</option>
+                    <option value="normal">정상</option>
+                    <option value="warning">주의</option>
+                    <option value="critical">위험</option>
+                  </select>
+                </div>
+              </div>
+              <div class="widget-body pt-0 px-6 pb-6">
+                <div
+                  id="sensor-card-list"
+                  class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+                >
+                  <!-- Sensor cards will be injected here by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CCTV Log Page -->
+          <div id="cctv-log-page" class="page-content hidden">
+            <div class="widget flex h-[calc(100vh-164px)] flex-col">
+              <div
+                class="widget-header flex flex-wrap items-center justify-between gap-2"
+              >
+                <span id="cctv-page-title" class="font-semibold"
+                  >CCTV 이벤트 로그</span
+                >
+                <div class="flex items-center space-x-2 text-sm">
+                  <select
+                    id="cctv-type-filter"
+                    class="bg-gray-50 border-gray-300 text-gray-900 block rounded-lg border p-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option selected value="">모든 이벤트 유형</option>
+                  </select>
+                  <input
+                    type="date"
+                    id="cctv-date-start"
+                    class="bg-gray-50 border-gray-300 text-gray-900 block rounded-lg border p-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <span class="text-gray-500">-</span>
+                  <input
+                    type="date"
+                    id="cctv-date-end"
+                    class="bg-gray-50 border-gray-300 text-gray-900 block rounded-lg border p-1.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <button
+                    id="cctv-filter-btn"
+                    class="rounded-lg bg-blue-500 px-3 py-1.5 text-white hover:bg-blue-600"
+                  >
+                    조회
+                  </button>
+                </div>
+              </div>
+              <div class="widget-body flex flex-1 overflow-hidden p-0">
+                <!-- CCTV Section (main content) -->
+                <div class="flex flex-1 flex-col overflow-y-auto pt-0 px-6 pb-6">
+                  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div
+                      id="cctv-main-viewer"
+                      class="flex min-h-[40vh] items-center justify-center rounded-md bg-black lg:col-span-2"
+                    >
+                      <!-- Video or Image will be injected here by JS -->
+                    </div>
+                    <div
+                      id="cctv-main-viewer-details"
+                      class="space-y-2 py-4 border rounded p-2 text-sm"
+                    >
+                      <!-- Details of the selected event -->
+                    </div>
+                  </div>
+                  <div class="mt-4 border-t">
+                    <h3 class="text-gray-600 p-3 text-sm font-semibold">
+                      Event Timeline
+                    </h3>
+                    <div
+                      id="cctv-thumbnail-list"
+                      class="bg-gray-50 flex space-x-3 overflow-x-auto p-3"
+                    >
+                      <!-- Thumbnails will be injected here -->
+                    </div>
+                  </div>
+                </div>
+                <!-- Sensor Status Side Panel -->
+                <div
+                  id="fire-sensor-status-container"
+                  class="bg-gray-50 hidden w-72 overflow-y-auto border-l p-4"
+                >
+                  <h3 class="text-gray-700 mb-4 border-b pb-2 font-semibold">
+                    연관 센서 상태
+                  </h3>
+                  <div id="fire-sensor-widgets" class="space-y-4">
+                    <!-- Sensor widgets will be injected here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Report Page -->
+          <div id="ai-report-page" class="page-content hidden">
+            <div class="widget">
+              <div class="widget-header flex items-center justify-between">
+                <h2 class="text-gray-700 text-lg font-semibold">
+                  AI 안전 리포트
+                </h2>
+              </div>
+              <div class="widget-body pt-0 px-6 pb-6">
+                <div class="mb-6 flex items-center space-x-4">
+                  <div>
+                    <label
+                      for="report-period"
+                      class="text-gray-700 block text-sm font-medium"
+                      >리포트 기간</label
+                    >
+                    <select
+                      id="report-period"
+                      class="border-gray-300 mt-1 block w-full rounded-md py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 border sm:text-sm"
+                    >
+                      <option>최근 7일</option>
+                      <option>최근 30일</option>
+                      <option>이번 달</option>
+                    </select>
+                  </div>
+                  <div class="pt-6">
+                    <button
+                      id="generate-report-btn"
+                      class="rounded-md bg-blue-600 px-6 py-2 font-semibold text-white transition hover:bg-blue-700"
+                    >
+                      <i class="fas fa-magic-wand-sparkles mr-2"></i>리포트 생성
+                    </button>
+                  </div>
+                </div>
+                <div
+                  id="report-output-container"
+                  class="border-gray-200 bg-gray-50 mt-4 min-h-[400px] rounded-lg border p-4"
+                >
+                  <div
+                    id="report-placeholder"
+                    class="text-gray-500 flex h-full flex-col items-center justify-center text-center"
+                  >
+                    <i class="fas fa-file-invoice mb-4 text-4xl"></i>
+                    <p>생성된 리포트가 여기에 표시됩니다.</p>
+                    <p class="text-sm">
+                      기간을 선택하고 "리포트 생성" 버튼을 클릭하세요.
+                    </p>
+                  </div>
+                  <div
+                    id="report-loading"
+                    class="text-gray-500 flex hidden h-full flex-col items-center justify-center text-center"
+                  >
+                    <i
+                      class="fas fa-circle-notch fa-spin mb-4 text-4xl text-blue-500"
+                    ></i>
+                    <p>
+                      AI가 안전 리포트를 생성하고 있습니다. 잠시만 기다려주세요.
+                    </p>
+                  </div>
+                  <div id="report-content" class="prose hidden max-w-none">
+                    <!-- Generated report will be injected here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor Detail Page -->
+          <div id="sensor-detail-page" class="page-content hidden">
+            <div class="mb-4">
+              <button
+                id="back-to-kitchen-status-btn"
+                class="text-sm text-blue-600 hover:underline"
+              >
+                <i class="fas fa-arrow-left mr-2"></i>작업자 환경 관리로
+                돌아가기
+              </button>
+            </div>
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div class="space-y-4 lg:col-span-2">
+                <div class="widget">
+                  <div class="widget-header">센서 정보</div>
+                  <div
+                    id="sensor-info-body"
+                    class="widget-body pt-0 px-6 pb-6 space-y-3"
+                  ></div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">성능 지표 (최근 30일)</div>
+                  <div
+                    id="sensor-metrics-body"
+                    class="widget-body pt-0 px-6 pb-6 grid grid-cols-3 gap-4 text-center"
+                  ></div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">장애 및 이력 로그</div>
+                  <div class="widget-body pt-0 px-6 pb-6 h-64 overflow-y-auto">
+                    <table class="w-full text-left text-sm">
+                      <thead
+                        class="text-gray-700 bg-gray-50 sticky top-0 text-xs uppercase"
+                      >
+                        <tr>
+                          <th class="px-4 py-2">타임스탬프</th>
+                          <th class="px-4 py-2">이벤트</th>
+                          <th class="px-4 py-2">측정값</th>
+                        </tr>
+                      </thead>
+                      <tbody id="sensor-log-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-4 lg:col-span-1">
+                <div class="widget">
+                  <div class="widget-header">설치 사진</div>
+                  <div
+                    id="sensor-photo-body"
+                    class="widget-body pt-0 px-6 pb-6 flex items-center justify-center"
+                  ></div>
+                </div>
+                <div class="widget">
+                  <div class="widget-header">데이터시트</div>
+                  <div id="sensor-datasheet-body" class="widget-body pt-0 px-6 pb-6"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Alert Management Modal -->
+    <div
+      id="alert-modal"
+      class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div class="w-full max-w-lg rounded-lg bg-white shadow-xl">
+        <div
+          id="alert-modal-header"
+          class="flex items-center justify-between border-b p-4"
+        >
+          <h3 class="text-lg font-bold">알림 상세정보</h3>
+          <button
+            id="close-modal-btn"
+            class="text-2xl font-bold hover:text-red-500"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="space-y-4 p-6">
+          <div id="alert-modal-details"></div>
+          <div>
+            <label
+              for="corrective-action"
+              class="text-gray-700 block text-sm font-medium"
+              >조치 내용 (SOP 기반)</label
+            ><select
+              id="corrective-action"
+              class="border-gray-300 mt-1 block w-full rounded-md py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            ></select>
+          </div>
+          <div>
+            <label
+              for="action-notes"
+              class="text-gray-700 block text-sm font-medium"
+              >메모</label
+            ><textarea
+              id="action-notes"
+              rows="3"
+              class="border-gray-300 mt-1 block w-full rounded-md border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            ></textarea>
+          </div>
+        </div>
+        <div
+          id="alert-modal-footer"
+          class="bg-gray-50 flex items-center justify-between border-t p-4"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Maintenance Action Modal -->
+    <div
+      id="maintenance-action-modal"
+      class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div class="w-full max-w-lg rounded-lg bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b p-4">
+          <h3 class="text-lg font-bold">예지보전 조치 입력</h3>
+          <button
+            id="close-maintenance-modal-btn"
+            class="text-2xl font-bold hover:text-red-500"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="space-y-4 p-6">
+          <div id="maintenance-modal-details"></div>
+          <div>
+            <label
+              for="maintenance-corrective-action"
+              class="text-gray-700 block text-sm font-medium"
+              >조치 내용 (SOP 기반)</label
+            >
+            <select
+              id="maintenance-corrective-action"
+              class="border-gray-300 mt-1 block w-full rounded-md py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            ></select>
+          </div>
+          <div>
+            <label
+              for="maintenance-action-notes"
+              class="text-gray-700 block text-sm font-medium"
+              >메모</label
+            >
+            <textarea
+              id="maintenance-action-notes"
+              rows="3"
+              class="border-gray-300 mt-1 block w-full rounded-md border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            ></textarea>
+          </div>
+        </div>
+        <div
+          id="maintenance-modal-footer"
+          class="bg-gray-50 flex items-center justify-end space-x-3 border-t p-4"
+        >
+          <!-- Buttons will be injected here -->
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+      // --- State and Config ---
+      const ACTIVE_SITE_ID = 'GUNPO-01';
+      let state = {
+        site: null,
+        alerts: [],
+        activeAlertId: null,
+        maintenanceSchedule: [],
+      };
+      const ALERT_TYPES = {
+        S1: { name: '유해 가스 (NH3)', level: 'critical', icon: 'fa-smog' },
+        S2: { name: '미세먼지 (PM2.5)', level: 'warning', icon: 'fa-wind' },
+        S3: {
+          name: '프레스 모터 과열',
+          level: 'critical',
+          icon: 'fa-temperature-high',
+        },
+        S4: {
+          name: '펌프 비정상 진동',
+          level: 'warning',
+          icon: 'fa-wave-square',
+        },
+        S5: {
+          name: '일산화탄소 (CO)',
+          level: 'warning',
+          icon: 'fa-skull-crossbones',
+        },
+        S6: {
+          name: '가연성 가스 (LEL)',
+          level: 'critical',
+          icon: 'fa-fire-flame-curved',
+        },
+        S7: { name: '공조 시스템 차압', level: 'warning', icon: 'fa-fan' },
+        S8: { name: '서버실 누수 감지', level: 'critical', icon: 'fa-tint' },
+        S9: { name: '컨베이어 소음', level: 'warning', icon: 'fa-volume-high' },
+        S10: { name: '주 전력 과부하', level: 'critical', icon: 'fa-bolt' },
+      };
+      const SENSOR_DETAILS = {
+        S1: {
+          name: '암모니아 가스 감지기',
+          id: 'GAS-NH3-001',
+          location: '1층 - 화학물질 저장 구역',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=Gas+Sensor',
+          pos: { x: -25, y: 5, z: 20 },
+          value: 3,
+          unit: 'PPM',
+          status: 'normal',
+        },
+        S2: {
+          name: '미세먼지 측정기',
+          id: 'DUST-PM25-001',
+          location: '1층 - 자재 절단 구역',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=Dust+Sensor',
+          pos: { x: 20, y: 5, z: 15 },
+          value: 25,
+          unit: 'µg/m³',
+          status: 'normal',
+        },
+        S3: {
+          name: '프레스 모터 온도 센서',
+          id: 'MOT-TEMP-003',
+          location: '2층 - 3번 프레스 모터',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=Motor+Sensor',
+          pos: { x: 10, y: 25, z: -10 },
+          value: 65,
+          unit: '°C',
+          status: 'normal',
+        },
+        S4: {
+          name: '냉각수 펌프 진동 센서',
+          id: 'PMP-VIB-002',
+          location: '2층 - 2번 냉각수 펌프',
+          photo:
+            'https://placehold.co/600x400/E2E8F0/4A5568?text=Vibration+Sensor',
+          pos: { x: -10, y: 25, z: -15 },
+          value: 1.2,
+          unit: 'mm/s',
+          status: 'normal',
+        },
+        S5: {
+          name: '일산화탄소 감지기',
+          id: 'GAS-CO-001',
+          location: '1층 - 지게차 충전소',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=CO+Sensor',
+          pos: { x: -20, y: 5, z: -20 },
+          value: 8,
+          unit: 'PPM',
+          status: 'normal',
+        },
+        S6: {
+          name: '가연성 가스 감지기',
+          id: 'GAS-LEL-001',
+          location: '1층 - 도장 부스',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=LEL+Sensor',
+          pos: { x: 30, y: 5, z: -5 },
+          value: 2,
+          unit: '%LEL',
+          status: 'normal',
+        },
+        S7: {
+          name: '차압 센서',
+          id: 'DP-001',
+          location: '3층 - 클린룸 공조기',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=DP+Sensor',
+          pos: { x: 0, y: 45, z: 0 },
+          value: 22,
+          unit: 'Pa',
+          status: 'normal',
+        },
+        S8: {
+          name: '누수 감지 센서',
+          id: 'LEAK-001',
+          location: '3층 - 서버실 바닥',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=Leak+Sensor',
+          pos: { x: -5, y: 45, z: 10 },
+          value: 0,
+          unit: '',
+          status: 'normal',
+        },
+        S9: {
+          name: '소음 센서',
+          id: 'ACU-002',
+          location: '2층 - 컨베이어 벨트',
+          photo:
+            'https://placehold.co/600x400/E2E8F0/4A5568?text=Acoustic+Sensor',
+          pos: { x: 25, y: 25, z: 20 },
+          value: 75,
+          unit: 'dB',
+          status: 'normal',
+        },
+        S10: {
+          name: '주 전력계',
+          id: 'PWR-001',
+          location: '1층 - 중앙 배전반',
+          photo: 'https://placehold.co/600x400/E2E8F0/4A5568?text=Power+Meter',
+          pos: { x: -25, y: 5, z: -25 },
+          value: 280,
+          unit: 'kW',
+          status: 'normal',
+        },
+      };
+      const CORRECTIVE_ACTIONS = {
+        S1: ['해당 구역 즉시 대피', '가스 밸브 차단', '강제 환기 실시'],
+        S2: [
+          '집진기 가동 상태 확인',
+          '해당 공정 일시 중지',
+          '작업자 방진 마스크 착용 확인',
+        ],
+        S3: [
+          '장비 즉시 정지 (E-Stop)',
+          '관리자에게 보고',
+          '유지보수팀 긴급 호출',
+        ],
+        S4: ['장비 부하 확인', '윤활 상태 점검', '정밀 진단 요청'],
+        S5: ['즉시 환기', '해당 구역 인원 대피', '발생원인 점검'],
+        S6: ['긴급 대피', '점화원 제거', '가스 공급 차단'],
+        S7: ['필터 상태 점검', '팬 작동 상태 확인', '덕트 누설 확인'],
+        S8: ['서버 전원 차단', '관리자 긴급 호출', '누수 지점 확인'],
+        S9: ['컨베이어 윤활 상태 점검', '베어링 마모 확인', '정밀 진단 요청'],
+        S10: ['불필요한 부하 차단', '전력 사용량 분산 조치', '한전 통보'],
+      };
+
+      let mockCctvEvents = [
+        {
+          id: 1,
+          type: '안전모 미착용 감지',
+          category: '작업자',
+          time: new Date(Date.now() - 15 * 60000),
+          status: '신규',
+          location: 'CAM-01 (B구역)',
+          thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+1',
+          image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+1',
+        },
+        {
+          id: 2,
+          type: '위험 구역 접근',
+          category: '위험구역',
+          time: new Date(Date.now() - 2 * 3600 * 1000),
+          status: '확인',
+          location: '화학물질 저장소',
+          thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+2',
+          image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+2',
+        },
+        {
+          id: 3,
+          type: '지게차 과속',
+          category: '작업자',
+          time: new Date(Date.now() - 5 * 3600 * 1000),
+          status: '조치 완료',
+          location: '자재 야적장',
+          thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+3',
+          image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+3',
+        },
+        {
+          id: 4,
+          type: '소화전 앞 장애물',
+          category: '화재',
+          time: new Date(Date.now() - 25 * 3600 * 1000),
+          status: '조치 완료',
+          location: '1번 건물 복도',
+          thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+4',
+          image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+4',
+        },
+        {
+          id: 5,
+          type: '연기 감지',
+          category: '화재',
+          time: new Date(Date.now() - 26 * 3600 * 1000),
+          status: '신규',
+          location: '도장 부스',
+          thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+5',
+          image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+5',
+        },
+        {
+          id: 6,
+          type: '작업자 쓰러짐 감지',
+          category: '작업자',
+          time: new Date(Date.now() - 30 * 3600 * 1000),
+          status: '신규',
+          location: '컨베이어 벨트',
+          thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+6',
+          image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+6',
+        },
+      ];
+
+      // --- DOM Elements ---
+      const elements = {
+        headerTitle: document.getElementById('header-title'),
+        kpiCardContainer: document.getElementById('kpi-card-container'),
+        localAlertManager: document.getElementById('local-alert-manager'),
+        managerInfo: document.getElementById('manager-info'),
+        cctvEventBody: document.getElementById('cctv-event-body'),
+        cctvMainViewer: document.getElementById('cctv-main-viewer'),
+        cctvMainViewerDetails: document.getElementById(
+          'cctv-main-viewer-details'
+        ),
+        cctvThumbnailList: document.getElementById('cctv-thumbnail-list'),
+        cctvTypeFilter: document.getElementById('cctv-type-filter'),
+        cctvDateStart: document.getElementById('cctv-date-start'),
+        cctvDateEnd: document.getElementById('cctv-date-end'),
+        cctvFilterBtn: document.getElementById('cctv-filter-btn'),
+        alertModal: document.getElementById('alert-modal'),
+        alertModalHeader: document.getElementById('alert-modal-header'),
+        alertModalDetails: document.getElementById('alert-modal-details'),
+        alertModalFooter: document.getElementById('alert-modal-footer'),
+        closeModalBtn: document.getElementById('close-modal-btn'),
+        correctiveActionSelect: document.getElementById('corrective-action'),
+        actionNotes: document.getElementById('action-notes'),
+        sensorInfoBody: document.getElementById('sensor-info-body'),
+        sensorDatasheetBody: document.getElementById('sensor-datasheet-body'),
+        sensorPhotoBody: document.getElementById('sensor-photo-body'),
+        sensorMetricsBody: document.getElementById('sensor-metrics-body'),
+        sensorLogBody: document.getElementById('sensor-log-body'),
+        mainNav: document.getElementById('main-nav'),
+        maintenanceSchedule: document.getElementById('maintenance-schedule'),
+        sopLinks: document.getElementById('sop-links'),
+        generateReportBtn: document.getElementById('generate-report-btn'),
+        reportOutputContainer: document.getElementById(
+          'report-output-container'
+        ),
+        reportPlaceholder: document.getElementById('report-placeholder'),
+        reportLoading: document.getElementById('report-loading'),
+        reportContent: document.getElementById('report-content'),
+        sensorStatusFilter: document.getElementById('sensor-status-filter'),
+        floorControls: document.getElementById('floor-controls'),
+        sensorTooltip: document.getElementById('sensor-tooltip'),
+        maintenanceActionModal: document.getElementById(
+          'maintenance-action-modal'
+        ),
+        maintenanceModalDetails: document.getElementById(
+          'maintenance-modal-details'
+        ),
+        maintenanceModalFooter: document.getElementById(
+          'maintenance-modal-footer'
+        ),
+        closeMaintenanceModalBtn: document.getElementById(
+          'close-maintenance-modal-btn'
+        ),
+        maintenanceCorrectiveActionSelect: document.getElementById(
+          'maintenance-corrective-action'
+        ),
+        maintenanceActionNotes: document.getElementById(
+          'maintenance-action-notes'
+        ),
+        sensorCardList: document.getElementById('sensor-card-list'),
+      };
+
+      let kitchenStatusCharts = {};
+      let reportCharts = {};
+      let threeJsApp;
+      let dataSimulatorInterval;
+
+      const STATUS_COLORS = {
+        normal: new THREE.Color(0x28a745),
+        warning: new THREE.Color(0xffc107),
+        critical: new THREE.Color(0xdc3545),
+      };
+
+      class ThreeJsViewer {
+        constructor(containerId) {
+          this.container = document.getElementById(containerId);
+          if (!this.container) {
+            console.error('3D container not found');
+            return;
+          }
+
+          this.scene = new THREE.Scene();
+          this.scene.background = new THREE.Color(0xf0f2f5);
+
+          this.camera = new THREE.PerspectiveCamera(
+            50,
+            this.container.clientWidth / this.container.clientHeight,
+            0.1,
+            1000
+          );
+          this.camera.position.set(60, 60, 80);
+
+          this.renderer = new THREE.WebGLRenderer({ antialias: true });
+          this.renderer.setSize(
+            this.container.clientWidth,
+            this.container.clientHeight
+          );
+          this.renderer.setPixelRatio(window.devicePixelRatio);
+          this.container.appendChild(this.renderer.domElement);
+
+          this.controls = new OrbitControls(
+            this.camera,
+            this.renderer.domElement
+          );
+          this.controls.enableDamping = true;
+          this.controls.minDistance = 20;
+          this.controls.maxDistance = 200;
+
+          this.raycaster = new THREE.Raycaster();
+          this.mouse = new THREE.Vector2();
+          this.intersected = null;
+
+          this.floors = [];
+          this.sensors = new THREE.Group();
+          this.scene.add(this.sensors);
+
+          this.addLights();
+          this.createBuilding();
+          this.createSensors();
+
+          window.addEventListener('resize', this.onResize.bind(this));
+          this.container.addEventListener(
+            'mousemove',
+            this.onMouseMove.bind(this)
+          );
+          this.container.addEventListener('click', this.onClick.bind(this));
+
+          this.animate();
+        }
+
+        addLights() {
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+          this.scene.add(ambientLight);
+          const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+          directionalLight.position.set(50, 80, 50);
+          this.scene.add(directionalLight);
+        }
+
+        createBuilding() {
+          const floorMaterial = new THREE.MeshStandardMaterial({
+            color: 0xcccccc,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide,
+          });
+          const floorGeometry = new THREE.PlaneGeometry(80, 60);
+
+          for (let i = 0; i < 3; i++) {
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial.clone());
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = i * 20;
+            this.scene.add(floor);
+            this.floors.push(floor);
+
+            const grid = new THREE.GridHelper(80, 8, 0x000000, 0x999999);
+            grid.material.opacity = 0.2;
+            grid.material.transparent = true;
+            grid.position.y = i * 20;
+            this.floors[i].add(grid);
+          }
+        }
+
+        createSensors() {
+          const geometry = new THREE.SphereGeometry(1.5, 32, 16);
+          for (const [key, details] of Object.entries(SENSOR_DETAILS)) {
+            const material = new THREE.MeshStandardMaterial({
+              color: STATUS_COLORS.normal,
+            });
+            const sensor = new THREE.Mesh(geometry, material);
+            sensor.position.set(details.pos.x, details.pos.y, details.pos.z);
+            sensor.userData = {
+              sensorType: key,
+              originalScale: sensor.scale.clone(),
+            };
+            this.sensors.add(sensor);
+          }
+        }
+
+        updateSensorStatus(sensorType, status) {
+          const sensorObject = this.sensors.children.find(
+            (s) => s.userData.sensorType === sensorType
+          );
+          if (sensorObject) {
+            const color = STATUS_COLORS[status] || STATUS_COLORS.normal;
+            sensorObject.material.color.set(color);
+            sensorObject.material.emissive.set(color);
+            sensorObject.material.emissiveIntensity =
+              status !== 'normal' ? 0.5 : 0;
+          }
+        }
+
+        focusOnSensor(sensorType) {
+          const sensorObject = this.sensors.children.find(
+            (s) => s.userData.sensorType === sensorType
+          );
+          if (sensorObject) {
+            const floorIndex = Math.floor(sensorObject.position.y / 20);
+
+            // Ensure parent floor is visible
+            document.querySelector(
+              `.floor-toggle[data-floor="${floorIndex}"]`
+            ).checked = true;
+            this.toggleFloor(floorIndex, true);
+
+            const targetPosition = sensorObject.position;
+            const offset = new THREE.Vector3(25, 25, 30);
+
+            // Smoothly move camera to the new position
+            const startPosition = this.camera.position.clone();
+            const endPosition = targetPosition.clone().add(offset);
+            const startTarget = this.controls.target.clone();
+            const endTarget = targetPosition.clone();
+
+            const duration = 1200; // milliseconds for animation
+            const startTime = performance.now();
+
+            const animateFocus = (currentTime) => {
+              const elapsedTime = currentTime - startTime;
+              let progress = Math.min(elapsedTime / duration, 1);
+              // Add easing function for smoother start and end
+              progress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+
+              this.camera.position.lerpVectors(
+                startPosition,
+                endPosition,
+                progress
+              );
+              this.controls.target.lerpVectors(
+                startTarget,
+                endTarget,
+                progress
+              );
+
+              if (progress < 1) {
+                requestAnimationFrame(animateFocus);
+              }
+            };
+            requestAnimationFrame(animateFocus);
+
+            // Highlight the sensor briefly
+            const highlightColor = new THREE.Color(0xffffff);
+            sensorObject.material.color.set(highlightColor);
+            setTimeout(() => {
+              if (sensorObject) {
+                // check if it still exists
+                const details =
+                  SENSOR_DETAILS[sensorObject.userData.sensorType];
+                sensorObject.material.color.set(STATUS_COLORS[details.status]);
+              }
+            }, 1500);
+          }
+        }
+
+        toggleFloor(floorIndex, visible) {
+          if (this.floors[floorIndex]) {
+            this.floors[floorIndex].visible = visible;
+            this.sensors.children.forEach((sensor) => {
+              const sensorFloor = Math.floor(sensor.position.y / 20);
+              if (sensorFloor === floorIndex) {
+                sensor.visible = visible;
+              }
+            });
+          }
+        }
+
+        onResize() {
+          const width = this.container.clientWidth;
+          const height = this.container.clientHeight;
+          this.camera.aspect = width / height;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(width, height);
+        }
+
+        onMouseMove(event) {
+          const rect = this.container.getBoundingClientRect();
+          this.mouse.x =
+            ((event.clientX - rect.left) / this.container.clientWidth) * 2 - 1;
+          this.mouse.y =
+            -((event.clientY - rect.top) / this.container.clientHeight) * 2 + 1;
+
+          elements.sensorTooltip.style.left = `${event.clientX - rect.left}px`;
+          elements.sensorTooltip.style.top = `${event.clientY - rect.top}px`;
+        }
+
+        onClick(event) {
+          this.raycaster.setFromCamera(this.mouse, this.camera);
+          const intersects = this.raycaster.intersectObjects(
+            this.sensors.children
+          );
+          if (intersects.length > 0) {
+            const sensorType = intersects[0].object.userData.sensorType;
+            showSensorDetailsFromPopup(sensorType);
+          }
+        }
+
+        animate() {
+          requestAnimationFrame(this.animate.bind(this));
+          this.controls.update();
+
+          this.raycaster.setFromCamera(this.mouse, this.camera);
+          const intersects = this.raycaster.intersectObjects(
+            this.sensors.children
+          );
+
+          if (intersects.length > 0 && intersects[0].object.visible) {
+            if (this.intersected != intersects[0].object) {
+              if (this.intersected) {
+                this.intersected.scale.copy(
+                  this.intersected.userData.originalScale
+                );
+              }
+              this.intersected = intersects[0].object;
+              this.intersected.scale.multiplyScalar(1.5);
+
+              const sensorType = this.intersected.userData.sensorType;
+              const details = SENSOR_DETAILS[sensorType];
+              elements.sensorTooltip.textContent = `${details.name}: ${details.value.toFixed(1)} ${details.unit}`;
+              elements.sensorTooltip.style.display = 'block';
+            }
+          } else {
+            if (this.intersected) {
+              this.intersected.scale.copy(
+                this.intersected.userData.originalScale
+              );
+            }
+            this.intersected = null;
+            elements.sensorTooltip.style.display = 'none';
+          }
+
+          this.renderer.render(this.scene, this.camera);
+        }
+      }
+
+
+      // --- Initialization ---
+      function initializeApp() {
+        state.site = {
+          id: ACTIVE_SITE_ID,
+          name: `군포 제1공장`,
+          manager: {
+            name: '김철수',
+            title: '현장 안전 관리자',
+            phone: `010-1234-5678`,
+          },
+        };
+        state.alerts = [
+          {
+            id: `mock_${ACTIVE_SITE_ID}_1`,
+            siteId: ACTIVE_SITE_ID,
+            type: 'S1',
+            timestamp: new Date(Date.now() - 2 * 60000),
+            status: 'new',
+            value: '50 PPM',
+          },
+          {
+            id: `mock_${ACTIVE_SITE_ID}_2`,
+            siteId: ACTIVE_SITE_ID,
+            type: 'S3',
+            timestamp: new Date(Date.now() - 5 * 60000),
+            status: 'new',
+            value: '95°C',
+          },
+          {
+            id: `mock_${ACTIVE_SITE_ID}_3`,
+            siteId: ACTIVE_SITE_ID,
+            type: 'S4',
+            timestamp: new Date(Date.now() - 15 * 60 * 1000),
+            status: 'acknowledged',
+            value: '3.5 mm/s',
+          },
+        ];
+        state.maintenanceSchedule = [
+          {
+            id: 'maint_1',
+            item: '냉각수 펌프 #2',
+            dueDate: '7일 내 점검 권장',
+            status: 'new',
+            reason: '베어링 마모 의심 (고장 확률 65%)',
+            sensorType: 'S4',
+          },
+          {
+            id: 'maint_2',
+            item: '프레스 모터 #3',
+            dueDate: '점검 지연 (2일)',
+            status: 'new',
+            reason: '온도 스파이크 감지 (고장 확률 75%)',
+            sensorType: 'S3',
+          },
+          {
+            id: 'maint_3',
+            item: '클린룸 공조기',
+            dueDate: '14일 내 필터 점검',
+            status: 'in_progress',
+            reason: '차압 상승 추세',
+            sensorType: 'S7',
+          },
+        ];
+
+        updateSensorStatusesFromAlerts();
+
+        renderAllComponents();
+        setupEventListeners();
+        startDataSimulator();
+
+        // Initialize sidebar state
+        window.sidebarIsOpen = window.innerWidth >= 1375;
+        
+        // Initialize toggle button icon
+        const toggleBtn = document.querySelector('#sidebar-toggle-btn i');
+        if (toggleBtn) {
+          toggleBtn.setAttribute(
+            'data-lucide',
+            window.sidebarIsOpen ? 'chevron-left' : 'menu'
+          );
+        }
+        
+        // Initialize header title visibility
+        updateHeaderTitle();
+        
+        // Initialize Lucide icons
+        setTimeout(() => {
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }, 100);
+      }
+
+      function updateSensorStatusesFromAlerts() {
+        Object.keys(SENSOR_DETAILS).forEach((key) => {
+          const activeAlert = state.alerts.find(
+            (a) => a.type === key && a.status !== 'closed'
+          );
+          if (activeAlert) {
+            SENSOR_DETAILS[key].status = ALERT_TYPES[key].level;
+            SENSOR_DETAILS[key].value = parseFloat(activeAlert.value);
+          } else {
+            SENSOR_DETAILS[key].status = 'normal';
+          }
+        });
+      }
+
+      // --- Rendering Functions ---
+      function renderAllComponents(isSimulated = false) {
+        updateSensorStatusesFromAlerts();
+        renderKpiCards();
+        renderKitchenStatusWidgets();
+        renderDashboardComponents();
+        if (!isSimulated) {
+          renderCctvLogPage();
+          renderSensorListPage();
+        } else {
+          // Re-render list page if it's active during simulation
+          if (
+            !document
+              .getElementById('kitchen-status-page')
+              .classList.contains('hidden')
+          ) {
+            renderSensorListPage(elements.sensorStatusFilter.value);
+          }
+        }
+        if (threeJsApp) {
+          for (const [key, details] of Object.entries(SENSOR_DETAILS)) {
+            threeJsApp.updateSensorStatus(key, details.status);
+          }
+        }
+        if (
+          document.getElementById('cctv-log-page').offsetParent !== null &&
+          document.querySelector('.nav-link.active[data-cctv-filter="화재"]')
+        ) {
+          renderFireSensorStatus();
+        }
+      }
+
+      function renderKpiCards() {
+        const criticalAlerts = state.alerts.filter(
+          (a) =>
+            a.status !== 'closed' && ALERT_TYPES[a.type].level === 'critical'
+        ).length;
+        const events24h = state.alerts.filter(
+          (a) => new Date() - a.timestamp < 86400000
+        ).length;
+
+        elements.kpiCardContainer.innerHTML = `
+            <div class="kpi-card">
+                <div class="kpi-icon bg-red-100 text-red-600"><i class="fas fa-triangle-exclamation"></i></div>
+                <div><p class="text-2xl font-bold">${criticalAlerts}</p><p class="text-sm text-gray-500">위험 알림</p></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-yellow-100 text-yellow-600"><i class="fas fa-calendar-day"></i></div>
+                <div><p class="text-2xl font-bold">${events24h}</p><p class="text-sm text-gray-500">오늘 발생 이벤트</p></div>
+            </div>
+             <div class="kpi-card">
+                <div class="kpi-icon bg-blue-100 text-blue-600"><i class="fas fa-clipboard-check"></i></div>
+                <div><p class="text-2xl font-bold">92</p><p class="text-sm text-gray-500">안전 점수</p></div>
+            </div>
+        `;
+      }
+
+      function renderKitchenStatusWidgets() {
+        Object.keys(SENSOR_DETAILS).forEach((key) => {
+          const sensor = SENSOR_DETAILS[key];
+          let colorClass = 'text-green-600';
+          if (sensor.status === 'critical') colorClass = 'text-red-600';
+          else if (sensor.status === 'warning') colorClass = 'text-yellow-600';
+
+          const sensorInfo = ALERT_TYPES[key];
+          const innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-semibold text-sm">${sensorInfo.name}</p>
+                        <p class="text-lg font-bold ${colorClass}">${sensor.value.toFixed(1)} ${sensor.unit}</p>
+                    </div>
+                    <div class="status-dot status-${sensor.status}"></div>
+                </div>`;
+          const dashWidget = document.getElementById(
+            `${key.toLowerCase()}-widget-dash`
+          );
+          if (dashWidget) dashWidget.innerHTML = innerHTML;
+        });
+      }
+
+      function renderSensorListPage(statusFilter = 'all') {
+        const cardContainer = elements.sensorCardList;
+        if (!cardContainer) return;
+
+        let filteredSensors = Object.entries(SENSOR_DETAILS);
+        if (statusFilter !== 'all') {
+          filteredSensors = filteredSensors.filter(([key, details]) => {
+            const alertTypeLevel = ALERT_TYPES[key].level;
+            if (statusFilter === 'normal') return details.status === 'normal';
+            // For warning/critical, check if the current status matches the alert level.
+            return details.status === statusFilter;
+          });
+        }
+
+        if (filteredSensors.length === 0) {
+          cardContainer.innerHTML = `<p class="col-span-full text-center p-8 text-gray-500">선택한 상태의 센서가 없습니다.</p>`;
+          return;
+        }
+
+        cardContainer.innerHTML = filteredSensors
+          .map(([key, sensorData]) => {
+            const sensorStatus = sensorData.status;
+            let colorClass = 'text-green-600';
+            let dotClass = 'status-normal';
+            if (sensorStatus === 'critical') {
+              colorClass = 'text-red-600';
+              dotClass = 'status-critical';
+            } else if (sensorStatus === 'warning') {
+              colorClass = 'text-yellow-600';
+              dotClass = 'status-warning';
+            }
+
+            return `
+            <div class="widget p-4 flex flex-col transition-all hover:shadow-lg">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="font-bold text-gray-800">${sensorData.name}</p>
+                        <p class="text-xs text-gray-500">${sensorData.id}</p>
+                    </div>
+                    <div class="flex items-center text-sm">
+                         <div class="status-dot ${dotClass} mr-2"></div>
+                         <span class="font-medium capitalize">${sensorStatus}</span>
+                    </div>
+                </div>
+
+                <div class="my-2">
+                     <p class="text-3xl font-bold ${colorClass}">${sensorData.value.toFixed(1)} ${sensorData.unit}</p>
+                     <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> ${sensorData.location}</p>
+                </div>
+
+                <div class="h-20 my-3">
+                    <canvas id="chart-card-${key}"></canvas>
+                </div>
+
+                <div class="mt-auto pt-3 border-t border-gray-200 flex justify-end space-x-4">
+                     <button class="font-medium text-blue-600 hover:underline view-on-map-btn" data-sensor-type="${key}">3D 보기</button>
+                     <button class="font-medium text-blue-600 hover:underline" data-sensor-type-detail="${key}">상세보기</button>
+                </div>
+            </div>
+            `;
+          })
+          .join('');
+
+        renderMiniChartsForCards(filteredSensors.map(([key]) => key));
+      }
+
+      function renderMiniChartsForCards(sensorKeys) {
+        sensorKeys.forEach((key) => {
+          const canvas = document.getElementById(`chart-card-${key}`);
+          if (canvas) {
+            if (
+              kitchenStatusCharts[key] &&
+              typeof kitchenStatusCharts[key].destroy === 'function'
+            ) {
+              kitchenStatusCharts[key].destroy();
+            }
+            const sensor = SENSOR_DETAILS[key];
+            const sensorStatus = sensor.status;
+            let color = '#28a745';
+            if (sensorStatus === 'critical') color = '#dc3545';
+            else if (sensorStatus === 'warning') color = '#ffc107';
+
+            const ctx = canvas.getContext('2d');
+            kitchenStatusCharts[key] = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: Array.from({ length: 10 }, (_, i) => ''),
+                datasets: [
+                  {
+                    data: Array.from(
+                      { length: 10 },
+                      () => Math.random() * sensor.value + sensor.value / 2
+                    ),
+                    borderColor: color,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: `${color}1A`,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { display: false }, y: { display: false } },
+              },
+            });
+          }
+        });
+      }
+
+      function renderDashboardComponents() {
+        const site = state.site;
+        elements.managerInfo.innerHTML = `<p><strong>이름:</strong> ${site.manager.name}</p><p><strong>직책:</strong> ${site.manager.title}</p><p><strong>연락처:</strong> ${site.manager.phone}</p>`;
+
+        const mostRecentEvent = mockCctvEvents[0];
+        elements.cctvEventBody.innerHTML = `
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <img src="${mostRecentEvent.thumbnail}" class="w-full sm:w-48 h-auto object-cover rounded-md"/>
+                <div class="flex-1">
+                    <p class="font-bold text-base text-gray-800">${mostRecentEvent.type}</p>
+                    <p class="text-sm text-gray-500">${mostRecentEvent.time.toLocaleString('ko-KR')}</p>
+                    <span class="mt-2 inline-block px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">${mostRecentEvent.status}</span>
+                </div>
+            </div>`;
+
+        const renderAlertCard = (alert) => {
+          const { name, level } = ALERT_TYPES[alert.type];
+          const color = level === 'critical' ? 'red' : 'yellow';
+          const statusText = {
+            new: '신규',
+            acknowledged: '확인',
+            closed: '조치 완료',
+          }[alert.status];
+          const statusColor = {
+            new: 'red',
+            acknowledged: 'blue',
+            closed: 'gray',
+          }[alert.status];
+          const levelText = { critical: '위험', warning: '주의' }[level];
+          return `<div class="p-3 border-l-4 border-${color}-500 bg-${color}-50 rounded-md cursor-pointer alert-card" data-alert-id="${alert.id}">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-sm text-${color}-700">[${levelText}] ${name}</p>
+                        <p class="text-xs text-gray-600">${alert.siteId} - ${alert.timestamp.toLocaleTimeString('ko-KR')}</p>
+                    </div>
+                    <button class="view-on-map-btn text-blue-600 hover:text-blue-800 text-lg" data-sensor-type="${alert.type}" title="3D 보기"><i class="fas fa-cube"></i></button>
+                </div>
+                <div class="text-xs mt-1"><span class="font-bold px-2 py-1 bg-${statusColor}-200 text-${statusColor}-800 rounded-full">${statusText}</span></div>
+            </div>`;
+        };
+        elements.localAlertManager.innerHTML = state.alerts
+          .map(renderAlertCard)
+          .join('');
+
+        renderMaintenanceSchedule();
+        renderSopLinks();
+      }
+
+      function renderMaintenanceSchedule() {
+        elements.maintenanceSchedule.innerHTML = state.maintenanceSchedule
+          .map((s) => {
+            const isOverdue = s.dueDate.includes('지연') && s.status === 'new';
+            const bgColor =
+              s.status === 'completed'
+                ? 'bg-green-50'
+                : s.status === 'in_progress'
+                  ? 'bg-blue-50'
+                  : isOverdue
+                    ? 'bg-red-50'
+                    : 'bg-yellow-50';
+            const borderColor =
+              s.status === 'completed'
+                ? 'border-green-400'
+                : s.status === 'in_progress'
+                  ? 'border-blue-400'
+                  : isOverdue
+                    ? 'border-red-400'
+                    : 'border-yellow-400';
+            const iconColor =
+              s.status === 'completed'
+                ? 'text-green-600'
+                : s.status === 'in_progress'
+                  ? 'text-blue-600'
+                  : isOverdue
+                    ? 'text-red-600'
+                    : 'text-yellow-600';
+            const icon =
+              s.status === 'completed'
+                ? 'fa-check-circle'
+                : s.status === 'in_progress'
+                  ? 'fa-spinner fa-spin'
+                  : isOverdue
+                    ? 'fa-triangle-exclamation'
+                    : 'fa-tools';
+
+            let statusTextHtml = '';
+            let actionButtonHtml = '';
+
+            switch (s.status) {
+              case 'new':
+                statusTextHtml = `<p class="text-sm ${isOverdue ? 'text-red-600' : 'text-yellow-600'} font-semibold">${s.dueDate}</p>`;
+                actionButtonHtml = `<button class="maint-action-btn text-xs font-medium text-blue-600 hover:underline" data-schedule-id="${s.id}" data-action="start">조치 시작</button>`;
+                break;
+              case 'in_progress':
+                statusTextHtml = `<p class="text-sm ${iconColor} font-semibold">조치 진행 중</p>`;
+                actionButtonHtml = `<button class="maint-action-btn text-xs font-medium text-green-600 hover:underline" data-schedule-id="${s.id}" data-action="complete">조치 완료</button>`;
+                break;
+              case 'completed':
+                statusTextHtml = `<p class="text-sm ${iconColor} font-semibold">조치 완료</p>`;
+                break;
+            }
+
+            return `
+            <div class="p-3 rounded-lg border-l-4 ${borderColor} ${bgColor}">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start">
+                        <i class="fas ${icon} ${iconColor} text-lg w-5 mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-bold text-gray-800">${s.item}</p>
+                            ${statusTextHtml}
+                            <p class="text-xs text-gray-600 mt-1">${s.reason}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        ${actionButtonHtml}
+                        <button class="block mt-2 text-xs text-gray-500 hover:underline" data-sensor-type-detail="${s.sensorType}">장비 상세보기</button>
+                    </div>
+                </div>
+            </div>`;
+          })
+          .join('');
+      }
+
+      function renderSopLinks() {
+        const links = [
+          { name: '일일 안전 점검표', icon: 'fa-check-square' },
+          { name: '가스 누출 비상 대응 절차', icon: 'fa-book' },
+          { name: 'LOTO (잠금/표식) 절차', icon: 'fa-lock' },
+        ];
+        elements.sopLinks.innerHTML = links
+          .map(
+            (l) =>
+              `<a href="#" class="flex items-center text-sm text-blue-600 hover:underline"><i class="fas ${l.icon} w-5 mr-2"></i><span>${l.name}</span></a>`
+          )
+          .join('');
+      }
+
+      function renderSensorDetailPage(sensorType) {
+        const details = SENSOR_DETAILS[sensorType];
+        if (!details) return;
+        switchPage('sensor-detail-page');
+        elements.headerTitle.textContent = `센서 상세정보: ${details.name}`;
+        elements.sensorInfoBody.innerHTML = `<p><strong>센서 ID:</strong> ${details.id}</p><p><strong>유형:</strong> ${details.name}</p><p><strong>설치 위치:</strong> ${details.location}</p><p><strong>배터리 잔량:</strong> 87%</p><p><strong>신호 강도:</strong> -75 dBm (Good)</p><p><strong>최근 교정일:</strong> 2025-06-01</p>`;
+        elements.sensorDatasheetBody.innerHTML = `<a href="#" class="text-blue-600 hover:underline">Monnit_Sensor_Datasheet.pdf <i class="fas fa-download ml-1"></i></a>`;
+        elements.sensorPhotoBody.innerHTML = `<img src="${details.photo}" alt="Sensor photo" class="max-w-full h-auto rounded-md shadow-md">`;
+        const mockLog = [
+          {
+            timestamp: new Date().toLocaleString('ko-KR'),
+            event: '임계값 초과',
+            value: '50 PPM',
+          },
+        ];
+        elements.sensorLogBody.innerHTML = mockLog
+          .map(
+            (log) =>
+              `<tr class="border-b"><td class="px-4 py-2">${log.timestamp}</td><td class="px-4 py-2">${log.event}</td><td class="px-4 py-2">${log.value}</td></tr>`
+          )
+          .join('');
+      }
+
+      function showSensorDetailsFromPopup(sensorType) {
+        renderSensorDetailPage(sensorType);
+      }
+
+      function renderCctvLogPage(filter = null) {
+        let eventsToDisplay = mockCctvEvents;
+        if (filter) {
+          eventsToDisplay = mockCctvEvents.filter((e) => e.category === filter);
+        }
+
+        const uniqueTypes = [...new Set(eventsToDisplay.map((e) => e.type))];
+        elements.cctvTypeFilter.innerHTML =
+          '<option selected value="">모든 이벤트 유형</option>' +
+          uniqueTypes
+            .map((type) => `<option value="${type}">${type}</option>`)
+            .join('');
+
+        const today = new Date().toISOString().split('T')[0];
+        elements.cctvDateStart.value = today;
+        elements.cctvDateEnd.value = today;
+
+        displayCctvEvents(eventsToDisplay);
+      }
+
+      function displayCctvEvents(events) {
+        if (!elements.cctvThumbnailList) return;
+        elements.cctvThumbnailList.innerHTML = '';
+        if (events.length === 0) {
+          elements.cctvMainViewer.innerHTML = `<div class="text-white text-center"><i class="fas fa-video-slash text-4xl mb-4"></i><p>선택한 조건에 맞는 이벤트가 없습니다.</p></div>`;
+          elements.cctvMainViewerDetails.innerHTML =
+            '<p class="text-gray-500">이벤트가 없습니다.</p>';
+          return;
+        }
+
+        events.forEach((event) => {
+          const thumbDiv = document.createElement('div');
+          thumbDiv.className =
+            'cctv-thumbnail cursor-pointer p-1 border-2 border-transparent rounded-md flex-shrink-0';
+          thumbDiv.dataset.eventId = event.id;
+          thumbDiv.innerHTML = `<img src="${event.thumbnail}" class="w-36 h-20 object-cover rounded-md"><p class="text-xs mt-1 text-center">${event.time.toLocaleTimeString('ko-KR')}</p>`;
+          elements.cctvThumbnailList.appendChild(thumbDiv);
+        });
+
+        selectCctvEvent(events[0].id);
+      }
+
+      function selectCctvEvent(eventId) {
+        const event = mockCctvEvents.find((e) => e.id == eventId);
+        if (!event) return;
+
+        elements.cctvMainViewer.innerHTML = ''; // Clear previous content
+
+        if (event.video) {
+          const video = document.createElement('video');
+          video.src = event.video;
+          video.className = 'max-w-full max-h-full object-contain';
+          video.controls = true;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          elements.cctvMainViewer.appendChild(video);
+        } else if (event.image) {
+          const img = document.createElement('img');
+          img.src = event.image;
+          img.className = 'max-w-full max-h-full object-contain';
+          elements.cctvMainViewer.appendChild(img);
+        } else {
+          elements.cctvMainViewer.innerHTML = `<img src="https://placehold.co/1280x720/000000/FFFFFF?text=Media+Not+Found" class="max-w-full max-h-full object-contain">`;
+        }
+
+        elements.cctvMainViewerDetails.innerHTML = `
+            <h4 class="font-bold text-lg">${event.type}</h4>
+            <p><strong>발생 시각:</strong> ${event.time.toLocaleString('ko-KR')}</p>
+            <p><strong>발생 위치:</strong> ${event.location}</p>
+            <p><strong>상태:</strong> <span class="font-bold ${event.status === '신규' ? 'text-red-500' : 'text-gray-600'}">${event.status}</span></p>
+            <div class="mt-4">
+                <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">관련 SOP 보기</button>
+            </div>
+        `;
+
+        document.querySelectorAll('.cctv-thumbnail').forEach((thumb) => {
+          thumb.classList.toggle('active', thumb.dataset.eventId == eventId);
+        });
+      }
+
+      function renderFireSensorStatus() {
+        const fireSensors = ['S3', 'S6', 'S5']; // Temperature, Flammable Gas, CO
+        const container = document.getElementById('fire-sensor-widgets');
+        if (!container) return;
+
+        container.innerHTML = fireSensors
+          .map((key) => {
+            const sensor = SENSOR_DETAILS[key];
+            const sensorInfo = ALERT_TYPES[key];
+            let colorClass = 'text-green-600';
+            if (sensor.status === 'critical') colorClass = 'text-red-600';
+            else if (sensor.status === 'warning')
+              colorClass = 'text-yellow-600';
+
+            return `
+            <div class="widget p-3 cursor-pointer hover:bg-gray-100 transition-colors" data-sensor-type-detail="${key}">
+                 <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-semibold text-sm">${sensorInfo.name}</p>
+                        <p class="text-xs text-gray-500">${sensor.location}</p>
+                    </div>
+                    <div class="status-dot status-${sensor.status}"></div>
+                </div>
+                <p class="text-lg font-bold ${colorClass} mt-1">${sensor.value.toFixed(1)} ${sensor.unit}</p>
+            </div>
+            `;
+          })
+          .join('');
+      }
+
+      function openAlertModal(alertId) {
+        /* ... content unchanged ... */
+      }
+
+      function openMaintenanceModal(scheduleId, action) {
+        const scheduleItem = state.maintenanceSchedule.find(
+          (s) => s.id === scheduleId
+        );
+        if (!scheduleItem) return;
+
+        elements.maintenanceModalDetails.innerHTML = `
+            <p><strong>대상 설비:</strong> ${scheduleItem.item}</p>
+            <p><strong>알림 사유:</strong> ${scheduleItem.reason}</p>
+        `;
+
+        const actions = CORRECTIVE_ACTIONS[scheduleItem.sensorType] || [
+          '담당자 확인',
+          '정비팀 전달',
+        ];
+        elements.maintenanceCorrectiveActionSelect.innerHTML = actions
+          .map((act) => `<option value="${act}">${act}</option>`)
+          .join('');
+        elements.maintenanceActionNotes.value = '';
+
+        if (action === 'start') {
+          elements.maintenanceModalFooter.innerHTML = `<button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" id="confirm-maint-action-btn" data-schedule-id="${scheduleId}" data-new-status="in_progress">확인 및 조치 시작</button>`;
+        } else if (action === 'complete') {
+          elements.maintenanceModalFooter.innerHTML = `<button class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600" id="confirm-maint-action-btn" data-schedule-id="${scheduleId}" data-new-status="completed">조치 완료</button>`;
+        }
+
+        elements.maintenanceActionModal.classList.remove('hidden');
+      }
+
+      function switchPage(targetId, navLink) {
+        document
+          .querySelectorAll('.page-content')
+          .forEach((p) => p.classList.add('hidden'));
+        const targetPage = document.getElementById(targetId);
+        if (targetPage) targetPage.classList.remove('hidden');
+
+        // Update active navigation state for ULTIVIS sidebar
+        document.querySelectorAll('.sidebar-item, .active-sidebar-item').forEach((item) => {
+          item.classList.remove('active-sidebar-item');
+          item.classList.add('sidebar-item');
+        });
+
+        // Find and activate the clicked item (use navLink if available, otherwise find by data-target)
+        let clickedItem = navLink;
+        if (!clickedItem && targetId) {
+          // If navLink is not provided, find the item by data-target
+          // For child items with same data-target, we need a different approach
+          clickedItem = document.querySelector(`[data-target="${targetId}"]`);
+        }
+        
+        if (clickedItem) {
+          clickedItem.classList.remove('sidebar-item');
+          clickedItem.classList.add('active-sidebar-item');
+        }
+
+        // Update active navigation state for old nav-links (backward compatibility)
+        document
+          .querySelectorAll('.nav-link')
+          .forEach((l) => l.classList.remove('active'));
+
+        if (navLink) {
+          navLink.classList.add('active');
+          const parentSubmenu = navLink.closest('ul[id$="-submenu"]');
+          if (parentSubmenu) {
+            parentSubmenu.classList.remove('hidden');
+            const parentToggleLink = document.querySelector(
+              `[data-target="#${parentSubmenu.id}"]`
+            );
+            if (parentToggleLink) {
+              parentToggleLink
+                .querySelector('.fa-chevron-down')
+                .classList.add('rotate-180');
+            }
+          }
+        }
+
+        // Auto-close sidebar on mobile when navigating
+        if (window.innerWidth < 1375) {
+          window.sidebarIsOpen = false;
+          const sidebar = document.getElementById('sidebar');
+          if (sidebar) {
+            sidebar.classList.add('sidebar-closed');
+          }
+        }
+
+        const pageTitle = navLink
+          ? navLink.textContent.trim()
+          : clickedItem?.textContent.trim() || '통합 대시보드';
+        elements.headerTitle.textContent = pageTitle;
+        
+        // Update desktop page title
+        const desktopTitle = document.getElementById('page-title-desktop');
+        if (desktopTitle) {
+          desktopTitle.textContent = pageTitle;
+        }
+
+        const fireSensorContainer = document.getElementById(
+          'fire-sensor-status-container'
+        );
+        if (targetId === 'cctv-log-page') {
+          document.getElementById('cctv-page-title').textContent = pageTitle;
+          const cctvFilter = navLink?.dataset?.cctvFilter || clickedItem?.dataset?.cctvFilter;
+          renderCctvLogPage(cctvFilter);
+
+          if (cctvFilter === '화재') {
+            fireSensorContainer.classList.remove('hidden');
+            renderFireSensorStatus();
+          } else {
+            fireSensorContainer.classList.add('hidden');
+          }
+        } else {
+          fireSensorContainer.classList.add('hidden');
+        }
+
+        if (targetId === 'kitchen-status-page') {
+          renderSensorListPage();
+        } else if (targetId === 'digital-twin-page') {
+          if (!threeJsApp) {
+            threeJsApp = new ThreeJsViewer('three-container');
+          }
+          setTimeout(() => {
+            if (threeJsApp) threeJsApp.onResize();
+          }, 100);
+        }
+      }
+
+      function renderReportCharts(criticalCount, warningCount) {
+        // Destroy previous charts if they exist
+        Object.values(reportCharts).forEach((chart) => chart.destroy());
+        reportCharts = {};
+
+        // 1. Safety Score Chart
+        const safetyScoreCtx = document
+          .getElementById('report-chart-safety-score')
+          ?.getContext('2d');
+        if (safetyScoreCtx) {
+          reportCharts.safetyScore = new Chart(safetyScoreCtx, {
+            type: 'line',
+            data: {
+              labels: [
+                '7일 전',
+                '6일 전',
+                '5일 전',
+                '4일 전',
+                '3일 전',
+                '2일 전',
+                '어제',
+              ],
+              datasets: [
+                {
+                  label: '안전 점수',
+                  data: [95, 94, 93, 94, 91, 92, 92],
+                  borderColor: '#3b82f6',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  fill: true,
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: { responsive: true, maintainAspectRatio: false },
+          });
+        }
+
+        // 2. Alert Distribution Chart
+        const alertDistCtx = document
+          .getElementById('report-chart-alert-distribution')
+          ?.getContext('2d');
+        if (alertDistCtx) {
+          reportCharts.alertDist = new Chart(alertDistCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['위험 알림', '주의 알림'],
+              datasets: [
+                {
+                  data: [criticalCount, warningCount],
+                  backgroundColor: ['#ef4444', '#f59e0b'],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+            },
+          });
+        }
+
+        // 3. S3 Motor Trend Chart
+        const s3TrendCtx = document
+          .getElementById('report-chart-s3-trend')
+          ?.getContext('2d');
+        if (s3TrendCtx) {
+          reportCharts.s3Trend = new Chart(s3TrendCtx, {
+            type: 'line',
+            data: {
+              labels: Array.from({ length: 30 }, (_, i) => `${i + 1}일`),
+              datasets: [
+                {
+                  label: '모터 온도 (°C)',
+                  data: [
+                    65, 66, 65, 67, 66, 68, 67, 66, 68, 69, 67, 68, 92, 69, 70,
+                    71, 70, 69, 72, 95, 71, 72, 73, 71, 74, 73, 98, 74, 75, 76,
+                  ],
+                  borderColor: '#f59e0b',
+                  pointRadius: 0,
+                  borderWidth: 2,
+                  tension: 0.1,
+                },
+                {
+                  label: '위험 임계값',
+                  data: Array(30).fill(90),
+                  borderColor: '#ef4444',
+                  borderDash: [5, 5],
+                  pointRadius: 0,
+                  borderWidth: 2,
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: false,
+                  suggestedMin: 50,
+                  suggestedMax: 110,
+                  title: { display: true, text: '온도 (°C)' },
+                },
+                x: { display: false },
+              },
+              plugins: { legend: { display: true, position: 'top' } },
+            },
+          });
+        }
+      }
+
+      function generateAiReport() {
+        elements.reportPlaceholder.classList.add('hidden');
+        elements.reportContent.classList.add('hidden');
+        elements.reportLoading.classList.remove('hidden');
+        elements.generateReportBtn.disabled = true;
+        elements.generateReportBtn.classList.add(
+          'opacity-50',
+          'cursor-not-allowed'
+        );
+
+        setTimeout(() => {
+          const period = document.getElementById('report-period').value;
+          const criticalAlerts = state.alerts.filter(
+            (a) =>
+              a.status !== 'closed' && ALERT_TYPES[a.type].level === 'critical'
+          );
+          const warningAlerts = state.alerts.filter(
+            (a) =>
+              a.status !== 'closed' && ALERT_TYPES[a.type].level === 'warning'
+          );
+
+          let reportHtml = `
+                <h3>AI 안전 분석 리포트 (${period})</h3>
+                <h4>1. 종합 안전 평가</h4>
+                <p><strong>평가 기간:</strong> ${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR')} ~ ${new Date().toLocaleDateString('ko-KR')}</p>
+                <p><strong>종합 안전 점수:</strong> <strong class="text-blue-600 text-lg">92점</strong></p>
+                <p>전반적으로 안정적인 상태를 유지하고 있으나, 특정 설비에서 반복적인 위험 신호가 감지되어 주의가 필요합니다. 특히 화학물질 저장 구역과 프레스 설비에 대한 집중 관리가 요구됩니다.</p>
+                
+                <h4>2. 주요 지표 시각화</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 not-prose">
+                    <div class="widget p-4"><div class="font-semibold text-center mb-2">종합 안전 점수 추이</div><div class="h-64"><canvas id="report-chart-safety-score"></canvas></div></div>
+                    <div class="widget p-4"><div class="font-semibold text-center mb-2">알림 유형 분포</div><div class="h-64"><canvas id="report-chart-alert-distribution"></canvas></div></div>
+                </div>
+
+                <h4>3. 주요 위험 이벤트 분석</h4>
+                <p>리포트 기간 동안 총 ${criticalAlerts.length}건의 '위험' 등급 알림과 ${warningAlerts.length}건의 '주의' 등급 알림이 발생했습니다.</p>
+                <ul>`;
+
+          if (criticalAlerts.length > 0) {
+            criticalAlerts.forEach((alert) => {
+              const details = SENSOR_DETAILS[alert.type];
+              const typeInfo = ALERT_TYPES[alert.type];
+              reportHtml += `<li><strong>[위험] ${typeInfo.name} (${details.location}):</strong> ${details.name}에서 기준치를 초과하는 '${alert.value}'가 감지되었습니다. 즉각적인 현장 확인 및 SOP에 따른 조치가 필요합니다.</li>`;
+            });
+          } else {
+            reportHtml += `<li><strong>[위험]</strong> 등급 알림은 발생하지 않았습니다.</li>`;
+          }
+
+          if (warningAlerts.length > 0) {
+            warningAlerts.forEach((alert) => {
+              const details = SENSOR_DETAILS[alert.type];
+              const typeInfo = ALERT_TYPES[alert.type];
+              reportHtml += `<li><strong>[주의] ${typeInfo.name} (${details.location}):</strong> ${details.name}에서 관리 기준에 근접하는 값이 지속적으로 측정되고 있습니다. 예지보전 계획에 따른 점검이 권장됩니다.</li>`;
+            });
+          } else {
+            reportHtml += `<li><strong>[주의]</strong> 등급 알림은 발생하지 않았습니다.</li>`;
+          }
+
+          reportHtml += `</ul>
+                <h4>4. AI 기반 예측 및 권장 사항</h4>
+                <div class="widget p-4 my-4 not-prose">
+                    <div class="font-semibold mb-2">예측: 프레스 모터 과열 위험 증가 (S3)</div>
+                    <p class="text-sm text-gray-600 mb-2">S3 센서 데이터 패턴 분석 결과, 간헐적인 온도 스파이크가 발생하고 있습니다. 이는 베어링 마모 또는 냉각 시스템의 문제일 수 있으며, <strong>향후 2주 내 고장 발생 확률이 75%로 예측</strong>됩니다.</p>
+                    <div class="h-64"><canvas id="report-chart-s3-trend"></canvas></div>
+                </div>
+                <ol>
+                    <li><strong>프레스 모터 (S3) 조치 권장:</strong> 즉시 정밀 진단을 수행하고, 필요시 베어링 교체 및 냉각 라인 점검을 권장합니다.</li>
+                    <li><strong>화학물질 저장 구역 (S1) 관리 강화:</strong> 암모니아 가스 센서에서 미세한 농도 증가 추세가 관찰됩니다. 현재는 기준치 이내이나, 환기 시스템 성능 저하의 초기 신호일 수 있습니다. <strong>조치 권장:</strong> 해당 구역의 환기 시스템 필터 점검 및 팬 성능 테스트를 월 1회에서 2회로 강화할 것을 권장합니다.</li>
+                    <li><strong>안전모 미착용 이벤트:</strong> 최근 CCTV 분석 결과 '안전모 미착용' 이벤트가 1건 감지되었습니다. 작업자 안전 교육 및 관리 감독 강화가 필요합니다.</li>
+                </ol>
+                <h4>5. 긍정적 동향</h4>
+                <p>S2 (미세먼지), S5 (일산화탄소) 센서는 지속적으로 '정상' 범위를 안정적으로 유지하고 있어, 해당 구역의 작업 환경 관리가 우수하게 이루어지고 있음을 시사합니다.</p>
+            `;
+
+          elements.reportContent.innerHTML = reportHtml;
+          renderReportCharts(criticalAlerts.length, warningAlerts.length);
+
+          elements.reportLoading.classList.add('hidden');
+          elements.reportContent.classList.remove('hidden');
+          elements.generateReportBtn.disabled = false;
+          elements.generateReportBtn.classList.remove(
+            'opacity-50',
+            'cursor-not-allowed'
+          );
+        }, 2500);
+      }
+
+      // --- Event Listeners & Simulator ---
+      function setupEventListeners() {
+        elements.mainNav.addEventListener('click', (e) => {
+          const navLink = e.target.closest('.nav-link');
+          if (!navLink) return;
+          e.preventDefault();
+
+          if (navLink.dataset.toggle === 'collapse') {
+            const submenu = document.querySelector(navLink.dataset.target);
+            const icon = navLink.querySelector('.fa-chevron-down');
+            if (submenu) {
+              submenu.classList.toggle('hidden');
+              icon.classList.toggle('rotate-180');
+            }
+            return;
+          }
+
+          if (navLink.dataset.target) {
+            switchPage(navLink.dataset.target, navLink);
+          }
+        });
+
+        document
+          .getElementById('back-to-kitchen-status-btn')
+          .addEventListener('click', () => {
+            switchPage(
+              'kitchen-status-page',
+              elements.mainNav.querySelector(
+                '[data-target="kitchen-status-page"]'
+              )
+            );
+          });
+
+        document.body.addEventListener('click', (e) => {
+          const alertCard = e.target.closest('.alert-card');
+          const moreCctvBtn = e.target.closest('.more-cctv-events-btn');
+          const viewOnMapBtn = e.target.closest('.view-on-map-btn');
+          const detailBtn = e.target.closest('[data-sensor-type-detail]');
+          const dashWidget = e.target.closest('.widget[data-sensor-type]');
+
+          if (viewOnMapBtn) {
+            e.stopPropagation();
+            const sensorType = viewOnMapBtn.dataset.sensorType;
+            switchPage(
+              'digital-twin-page',
+              elements.mainNav.querySelector(
+                '[data-target="digital-twin-page"]'
+              )
+            );
+            if (threeJsApp) threeJsApp.focusOnSensor(sensorType);
+          } else if (alertCard) {
+            openAlertModal(alertCard.dataset.alertId);
+          } else if (detailBtn) {
+            renderSensorDetailPage(detailBtn.dataset.sensorTypeDetail);
+          } else if (dashWidget) {
+            renderSensorDetailPage(dashWidget.dataset.sensorType);
+          } else if (moreCctvBtn) {
+            const fireLink = document.querySelector(
+              '[data-cctv-filter="화재"]'
+            );
+            switchPage('cctv-log-page', fireLink);
+          }
+        });
+
+        elements.cctvFilterBtn.addEventListener('click', () => {
+          const activeCctvLink = document.querySelector(
+            '.nav-submenu-link.active'
+          );
+          const categoryFilter = activeCctvLink
+            ? activeCctvLink.dataset.cctvFilter
+            : null;
+
+          let filtered = mockCctvEvents;
+          if (categoryFilter) {
+            filtered = filtered.filter(
+              (event) => event.category === categoryFilter
+            );
+          }
+
+          const type = elements.cctvTypeFilter.value;
+          const start = new Date(elements.cctvDateStart.value);
+          const end = new Date(elements.cctvDateEnd.value);
+          end.setHours(23, 59, 59, 999);
+
+          filtered = filtered.filter((event) => {
+            const eventDate = event.time;
+            const typeMatch = type ? event.type === type : true;
+            const dateMatch = eventDate >= start && eventDate <= end;
+            return typeMatch && dateMatch;
+          });
+          displayCctvEvents(filtered);
+        });
+
+        elements.cctvThumbnailList.addEventListener('click', (e) => {
+          const thumb = e.target.closest('.cctv-thumbnail');
+          if (thumb) selectCctvEvent(thumb.dataset.eventId);
+        });
+
+        elements.sensorStatusFilter.addEventListener('change', (e) => {
+          renderSensorListPage(e.target.value);
+        });
+
+        elements.closeModalBtn.addEventListener('click', () =>
+          elements.alertModal.classList.add('hidden')
+        );
+        elements.closeMaintenanceModalBtn.addEventListener('click', () =>
+          elements.maintenanceActionModal.classList.add('hidden')
+        );
+
+        elements.maintenanceSchedule.addEventListener('click', (e) => {
+          const btn = e.target.closest('.maint-action-btn');
+          if (btn) {
+            const { scheduleId, action } = btn.dataset;
+            openMaintenanceModal(scheduleId, action);
+          }
+        });
+
+        elements.maintenanceModalFooter.addEventListener('click', (e) => {
+          const btn = e.target.closest('#confirm-maint-action-btn');
+          if (btn) {
+            const { scheduleId, newStatus } = btn.dataset;
+            const scheduleItem = state.maintenanceSchedule.find(
+              (s) => s.id === scheduleId
+            );
+            if (scheduleItem) {
+              scheduleItem.status = newStatus;
+              renderMaintenanceSchedule();
+              elements.maintenanceActionModal.classList.add('hidden');
+            }
+          }
+        });
+
+        elements.generateReportBtn.addEventListener('click', generateAiReport);
+        elements.floorControls.addEventListener('change', (e) => {
+          if (e.target.classList.contains('floor-toggle') && threeJsApp) {
+            const floorIndex = parseInt(e.target.dataset.floor, 10);
+            const isVisible = e.target.checked;
+            threeJsApp.toggleFloor(floorIndex, isVisible);
+          }
+        });
+      }
+
+      function startDataSimulator() {
+        if (dataSimulatorInterval) clearInterval(dataSimulatorInterval);
+        dataSimulatorInterval = setInterval(() => {
+          Object.keys(SENSOR_DETAILS).forEach((key) => {
+            const sensor = SENSOR_DETAILS[key];
+            if (sensor.status === 'normal') {
+              const change = (Math.random() - 0.5) * (sensor.value * 0.1);
+              const newValue = sensor.value + change;
+              sensor.value = Math.max(0, newValue);
+            }
+          });
+          if (Math.random() < 0.05) {
+            const sensorKeys = Object.keys(SENSOR_DETAILS);
+            const randomKey =
+              sensorKeys[Math.floor(Math.random() * sensorKeys.length)];
+            const isExisting = state.alerts.some(
+              (a) => a.type === randomKey && a.status !== 'closed'
+            );
+            if (!isExisting) {
+              const newValue =
+                ALERT_TYPES[randomKey].level === 'critical' ? 100 : 50;
+              state.alerts.unshift({
+                id: `mock_${Date.now()}`,
+                siteId: ACTIVE_SITE_ID,
+                type: randomKey,
+                timestamp: new Date(),
+                status: 'new',
+                value: `${newValue} ${SENSOR_DETAILS[randomKey].unit}`,
+              });
+            }
+          }
+          renderAllComponents(true);
+        }, 3000);
+      }
+
+      // --- ULTIVIS Sidebar Functions ---
+      function updateHeaderTitle() {
+        const headerTitle = document.getElementById('header-title');
+        if (headerTitle) {
+          // Show title when: sidebarIsOpen = false AND viewport < 1280px
+          // Hide title when: sidebarIsOpen = true OR viewport >= 1280px
+          const shouldShow = !window.sidebarIsOpen && window.innerWidth < 1280;
+          
+          if (shouldShow) {
+            headerTitle.classList.remove('hidden');
+            headerTitle.classList.add('block');
+          } else {
+            headerTitle.classList.remove('block');
+            headerTitle.classList.add('hidden');
+          }
+        }
+      }
+
+      function toggleSidebar() {
+        window.sidebarIsOpen = !window.sidebarIsOpen;
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+          sidebar.classList.toggle('sidebar-closed');
+        }
+        // Update toggle button icon
+        const toggleBtn = document.querySelector('#sidebar-toggle-btn i');
+        if (toggleBtn) {
+          toggleBtn.setAttribute(
+            'data-lucide',
+            window.sidebarIsOpen ? 'chevron-left' : 'menu'
+          );
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }
+        // Update header title visibility
+        updateHeaderTitle();
+      }
+
+      function toggleCategory(categoryId) {
+        const categoryEl = document.getElementById(`category-${categoryId}`);
+        const chevronEl = document.getElementById(`chevron-${categoryId}`);
+        if (categoryEl) {
+          categoryEl.classList.toggle('hidden');
+          chevronEl.classList.toggle('rotate-180');
+        }
+      }
+
+      // Global function to make it available to onclick handlers
+      window.switchPage = switchPage;
+      window.toggleSidebar = toggleSidebar;
+      window.toggleCategory = toggleCategory;
+
+      // --- Responsive Setup ---
+      function setupResponsive() {
+        window.addEventListener('resize', () => {
+          const wasOpen = window.sidebarIsOpen;
+          const shouldBeOpen = window.innerWidth >= 1375;
+          if (wasOpen !== shouldBeOpen) {
+            window.sidebarIsOpen = shouldBeOpen;
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+              if (shouldBeOpen) {
+                sidebar.classList.remove('sidebar-closed');
+              } else {
+                sidebar.classList.add('sidebar-closed');
+              }
+            }
+            // Update toggle button icon
+            const toggleBtn = document.querySelector('#sidebar-toggle-btn i');
+            if (toggleBtn) {
+              toggleBtn.setAttribute(
+                'data-lucide',
+                window.sidebarIsOpen ? 'chevron-left' : 'menu'
+              );
+              if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+              }
+            }
+          }
+          // Always update header title on resize
+          updateHeaderTitle();
+        });
+      }
+
+      // --- App Start ---
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeApp();
+        setupResponsive();
+      });
+    </script>
+  </body>
+</html>
