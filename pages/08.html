@@ -23,7 +23,13 @@
       }
     </script>
     <style>
-      @import url('https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css');
+      @font-face {
+        font-family: 'SUIT';
+        font-weight: normal;
+        font-style: normal;
+        src: url('../SUIT-Regular.woff2') format('woff2');
+        font-display: swap;
+      }
       
       :root {
         --color-primary: #0075ff;
@@ -167,7 +173,7 @@
         align-items: center;
         gap: 10px;
         padding: 12px;
-        margin: 2px 0;
+        margin: 4px 0;
         border-radius: 4px;
         cursor: pointer;
         font-size: 18px;
@@ -181,7 +187,7 @@
         align-items: center;
         gap: 10px;
         padding: 12px;
-        margin: 2px 0;
+        margin: 4px 0;
         border-radius: 4px;
         cursor: pointer;
         font-size: 18px;
@@ -338,22 +344,22 @@
               <ul id="main-nav" class="flex flex-col gap-1.5">
                 <li class="active-sidebar-item" onclick="switchPage('dashboard-page', this)" data-target="dashboard-page" data-menu-id="dashboard">
                   <i data-lucide="house" class="w-6 h-6 flex-shrink-0"></i>
-                  <span class="flex-grow truncate">통합 대시보드</span>
+                  <span class="flex-grow truncate leading-[22px]">통합 대시보드</span>
                 </li>
                 <li class="sidebar-item" onclick="switchPage('digital-twin-page', this)" data-target="digital-twin-page" data-menu-id="digital-twin">
                   <i data-lucide="move-3d" class="w-6 h-6 flex-shrink-0"></i>
-                  <span class="flex-grow truncate">3D 통합 관제</span>
+                  <span class="flex-grow truncate leading-[22px]">3D 통합 관제</span>
                 </li>
                 <li class="sidebar-item" onclick="switchPage('kitchen-status-page', this)" data-target="kitchen-status-page" data-menu-id="worker-env">
                   <i data-lucide="hard-hat" class="w-6 h-6 flex-shrink-0"></i>
-                  <span class="flex-grow truncate">작업자 환경 관리</span>
+                  <span class="flex-grow truncate leading-[22px]">작업자 환경 관리</span>
                 </li>
                 <!-- Collapsible Safety Menu -->
                 <li class="sidebar-category">
                   <button onclick="toggleCategory('safety')" class="sidebar-item w-full flex justify-between">
                     <div class="flex items-center gap-2">
                       <i data-lucide="shield" class="w-6 h-6 flex-shrink-0"></i>
-                      <span class="flex-grow truncate text-left">산업 안전</span>
+                      <span class="flex-grow truncate text-left leading-[22px]">산업 안전</span>
                     </div>
                     <i data-lucide="chevron-down" class="w-6 h-6 transition-transform" id="chevron-safety"></i>
                   </button>
@@ -361,26 +367,26 @@
                     <div class="pl-2">
                       <li class="sidebar-item sidebar-child-item" onclick="switchPage('cctv-log-page', this)" data-target="cctv-log-page" data-cctv-filter="화재" data-menu-id="fire-safety">
                         <i data-lucide="flame" class="w-6 h-6 flex-shrink-0"></i>
-                        <span class="flex-grow truncate">화재 감지 시스템</span>
+                        <span class="flex-grow truncate leading-[22px]">화재 감지 시스템</span>
                       </li>
                     </div>
                     <div class="pl-2">
                       <li class="sidebar-item sidebar-child-item" onclick="switchPage('cctv-log-page', this)" data-target="cctv-log-page" data-cctv-filter="작업자" data-menu-id="worker-safety">
                         <i data-lucide="user-check" class="w-6 h-6 flex-shrink-0"></i>
-                        <span class="flex-grow truncate">작업자 안전 관리</span>
+                        <span class="flex-grow truncate leading-[22px]">작업자 안전 관리</span>
                       </li>
                     </div>
                     <div class="pl-2">
                       <li class="sidebar-item sidebar-child-item" onclick="switchPage('cctv-log-page', this)" data-target="cctv-log-page" data-cctv-filter="위험구역" data-menu-id="danger-zone">
                         <i data-lucide="alert-triangle" class="w-6 h-6 flex-shrink-0"></i>
-                        <span class="flex-grow truncate">위험 구역 출입 관리</span>
+                        <span class="flex-grow truncate leading-[22px]">위험 구역 출입 관리</span>
                       </li>
                     </div>
                   </ul>
                 </li>
                 <li class="sidebar-item" onclick="switchPage('ai-report-page', this)" data-target="ai-report-page" data-menu-id="ai-report">
                   <i data-lucide="bot" class="w-6 h-6 flex-shrink-0"></i>
-                  <span class="flex-grow truncate">AI 리포트</span>
+                  <span class="flex-grow truncate leading-[22px]">AI 리포트</span>
                 </li>
               </ul>
             </nav>
@@ -619,7 +625,10 @@
                   />
                   <button
                     id="cctv-filter-btn"
-                    class="rounded-lg bg-blue-500 px-3 py-1.5 text-white hover:bg-blue-600"
+                    class="rounded-lg px-3 py-1.5 text-white transition-colors"
+                    style="background-color: var(--color-primary);"
+                    onmouseover="this.style.backgroundColor='#0066CC'"
+                    onmouseout="this.style.backgroundColor='var(--color-primary)'"
                   >
                     조회
                   </button>
@@ -698,7 +707,10 @@
                   <div class="pt-6">
                     <button
                       id="generate-report-btn"
-                      class="rounded-md bg-blue-600 px-6 py-2 font-semibold text-white transition hover:bg-blue-700"
+                      class="rounded-md px-6 py-2 font-semibold text-white transition-colors"
+                      style="background-color: var(--color-primary);"
+                      onmouseover="this.style.backgroundColor='#0066CC'"
+                      onmouseout="this.style.backgroundColor='var(--color-primary)'"
                     >
                       <i class="fas fa-magic-wand-sparkles mr-2"></i>리포트 생성
                     </button>
@@ -742,7 +754,7 @@
             <div class="mb-4">
               <button
                 id="back-to-kitchen-status-btn"
-                class="text-sm text-blue-600 hover:underline"
+                class="text-lg text-blue-600 hover:underline"
               >
                 <i class="fas fa-arrow-left mr-2"></i>작업자 환경 관리로
                 돌아가기
@@ -875,7 +887,7 @@
             >
             <select
               id="maintenance-corrective-action"
-              class="border-gray-300 mt-1 block w-full rounded-md py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+              class="border-gray-300 mt-1 border block w-full rounded-md py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
             ></select>
           </div>
           <div>
@@ -1071,7 +1083,7 @@
           type: '안전모 미착용 감지',
           category: '작업자',
           time: new Date(Date.now() - 15 * 60000),
-          status: '신규',
+          status: '활성',
           location: 'CAM-01 (B구역)',
           thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+1',
           image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+1',
@@ -1111,7 +1123,7 @@
           type: '연기 감지',
           category: '화재',
           time: new Date(Date.now() - 26 * 3600 * 1000),
-          status: '신규',
+          status: '활성',
           location: '도장 부스',
           thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+5',
           image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+5',
@@ -1121,7 +1133,7 @@
           type: '작업자 쓰러짐 감지',
           category: '작업자',
           time: new Date(Date.now() - 30 * 3600 * 1000),
-          status: '신규',
+          status: '활성',
           location: '컨베이어 벨트',
           thumbnail: 'https://placehold.co/150x84/E2E8F0/4A5568?text=Event+6',
           image: 'https://placehold.co/1280x720/E2E8F0/4A5568?text=Event+6',
@@ -1535,13 +1547,26 @@
         // Initialize sidebar state
         window.sidebarIsOpen = window.innerWidth >= 1375;
         
+        // Initialize sidebar CSS state
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+          if (window.sidebarIsOpen) {
+            sidebar.classList.remove('sidebar-closed');
+          } else {
+            sidebar.classList.add('sidebar-closed');
+          }
+        }
+        
         // Initialize toggle button icon
         const toggleBtn = document.querySelector('#sidebar-toggle-btn i');
         if (toggleBtn) {
-          toggleBtn.setAttribute(
-            'data-lucide',
-            window.sidebarIsOpen ? 'chevron-left' : 'menu'
-          );
+          const initialIcon = window.sidebarIsOpen ? 'chevron-left' : 'menu';
+          toggleBtn.setAttribute('data-lucide', initialIcon);
+          
+          // Initialize Lucide icons immediately
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
         }
         
         // Initialize header title visibility
@@ -1781,7 +1806,7 @@
           const { name, level } = ALERT_TYPES[alert.type];
           const color = level === 'critical' ? 'red' : 'yellow';
           const statusText = {
-            new: '신규',
+            new: '활성',
             acknowledged: '확인',
             closed: '조치 완료',
           }[alert.status];
@@ -1857,18 +1882,19 @@
                 break;
               case 'in_progress':
                 statusTextHtml = `<p class="text-sm ${iconColor} font-semibold">조치 진행 중</p>`;
-                actionButtonHtml = `<button class="maint-action-btn text-xs font-medium text-green-600 hover:underline" data-schedule-id="${s.id}" data-action="complete">조치 완료</button>`;
+                actionButtonHtml = `<button class="maint-action-btn text-xs font-medium text-yellow-600 hover:underline" data-schedule-id="${s.id}" data-action="complete">조치 완료</button>`;
                 break;
               case 'completed':
-                statusTextHtml = `<p class="text-sm ${iconColor} font-semibold">조치 완료</p>`;
+                statusTextHtml = `<p class="text-sm text-gray-500 font-semibold">조치 완료</p>`;
+                actionButtonHtml = `<button class="text-xs font-medium text-gray-400 cursor-not-allowed" disabled>조치 해결</button>`;
                 break;
             }
 
             return `
             <div class="p-3 rounded-lg border-l-4 ${borderColor} ${bgColor}">
                 <div class="flex items-start justify-between">
-                    <div class="flex items-start">
-                        <i class="fas ${icon} ${iconColor} text-lg w-5 mt-1 mr-3"></i>
+                    <div class="flex items-center">
+                        <i class="fas ${icon} ${iconColor} text-lg w-5 mr-2"></i>
                         <div>
                             <p class="font-bold text-gray-800">${s.item}</p>
                             ${statusTextHtml}
@@ -1996,9 +2022,13 @@
             <h4 class="font-bold text-lg">${event.type}</h4>
             <p><strong>발생 시각:</strong> ${event.time.toLocaleString('ko-KR')}</p>
             <p><strong>발생 위치:</strong> ${event.location}</p>
-            <p><strong>상태:</strong> <span class="font-bold ${event.status === '신규' ? 'text-red-500' : 'text-gray-600'}">${event.status}</span></p>
+            <p><strong>상태:</strong> <span class="font-bold ${event.status === '활성' ? 'text-red-500' : 'text-gray-600'}">${event.status}</span></p>
             <div class="mt-4">
-                <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">관련 SOP 보기</button>
+                <button class="w-full px-4 py-2 text-white rounded-md transition-colors"
+                        style="background-color: var(--color-primary);"
+                        onmouseover="this.style.backgroundColor='#0066CC'"
+                        onmouseout="this.style.backgroundColor='var(--color-primary)'"
+                >관련 SOP 보기</button>
             </div>
         `;
 
@@ -2062,7 +2092,7 @@
         elements.maintenanceActionNotes.value = '';
 
         if (action === 'start') {
-          elements.maintenanceModalFooter.innerHTML = `<button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" id="confirm-maint-action-btn" data-schedule-id="${scheduleId}" data-new-status="in_progress">확인 및 조치 시작</button>`;
+          elements.maintenanceModalFooter.innerHTML = `<button class="px-4 py-2 text-white rounded-md transition-colors" id="confirm-maint-action-btn" data-schedule-id="${scheduleId}" data-new-status="in_progress" style="background-color: var(--color-primary);" onmouseover="this.style.backgroundColor='#0066CC'" onmouseout="this.style.backgroundColor='var(--color-primary)'">조치 시작</button>`;
         } else if (action === 'complete') {
           elements.maintenanceModalFooter.innerHTML = `<button class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600" id="confirm-maint-action-btn" data-schedule-id="${scheduleId}" data-new-status="completed">조치 완료</button>`;
         }
@@ -2128,7 +2158,7 @@
 
         const pageTitle = navLink
           ? navLink.textContent.trim()
-          : clickedItem?.textContent.trim() || '통합 대시보드';
+          : clickedItem?.textContent.trim() || '';
         elements.headerTitle.textContent = pageTitle;
         
         // Update desktop page title
@@ -2476,7 +2506,7 @@
 
         elements.maintenanceSchedule.addEventListener('click', (e) => {
           const btn = e.target.closest('.maint-action-btn');
-          if (btn) {
+          if (btn && !btn.disabled) {
             const { scheduleId, action } = btn.dataset;
             openMaintenanceModal(scheduleId, action);
           }
@@ -2562,21 +2592,42 @@
 
       function toggleSidebar() {
         window.sidebarIsOpen = !window.sidebarIsOpen;
+        
         const sidebar = document.getElementById('sidebar');
         if (sidebar) {
-          sidebar.classList.toggle('sidebar-closed');
-        }
-        // Update toggle button icon
-        const toggleBtn = document.querySelector('#sidebar-toggle-btn i');
-        if (toggleBtn) {
-          toggleBtn.setAttribute(
-            'data-lucide',
-            window.sidebarIsOpen ? 'chevron-left' : 'menu'
-          );
-          if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
+          if (window.sidebarIsOpen) {
+            sidebar.classList.remove('sidebar-closed');
+          } else {
+            sidebar.classList.add('sidebar-closed');
           }
         }
+        
+        // Update toggle button icon
+        const toggleButton = document.getElementById('sidebar-toggle-btn');
+        if (toggleButton) {
+          // Lucide가 i 태그를 svg로 교체할 수 있으므로 다양한 선택자 시도
+          let toggleIcon = toggleButton.querySelector('i[data-lucide]') || 
+                          toggleButton.querySelector('svg[data-lucide]') || 
+                          toggleButton.querySelector('i') || 
+                          toggleButton.querySelector('svg');
+          
+          if (!toggleIcon) {
+            // 아이콘 요소가 없으면 새로 생성
+            toggleIcon = document.createElement('i');
+            toggleIcon.className = 'w-6 h-6';
+            toggleButton.appendChild(toggleIcon);
+          }
+          
+          if (toggleIcon) {
+            const newIcon = window.sidebarIsOpen ? 'chevron-left' : 'menu';
+            toggleIcon.setAttribute('data-lucide', newIcon);
+            
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          }
+        }
+        
         // Update header title visibility
         updateHeaderTitle();
       }
@@ -2613,10 +2664,9 @@
             // Update toggle button icon
             const toggleBtn = document.querySelector('#sidebar-toggle-btn i');
             if (toggleBtn) {
-              toggleBtn.setAttribute(
-                'data-lucide',
-                window.sidebarIsOpen ? 'chevron-left' : 'menu'
-              );
+              const resizeIcon = window.sidebarIsOpen ? 'chevron-left' : 'menu';
+              toggleBtn.setAttribute('data-lucide', resizeIcon);
+              
               if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
               }
