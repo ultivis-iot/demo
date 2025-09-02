@@ -336,6 +336,504 @@
           opacity: 1;
         }
       }
+      
+      /* Dark Mode Toggle Button */
+      .dark-mode-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 0;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 18px;
+        color: #666666;
+        background: transparent;
+        border: none;
+        transition: all 0.15s ease-in-out;
+      }
+
+      .dark-mode-toggle:hover {
+        font-weight: bold;
+        color: #0075ff;
+      }
+
+      .dark .dark-mode-toggle {
+        color: rgba(255, 255, 255, 0.60);
+      }
+
+      .dark .dark-mode-toggle:hover {
+        color: #318FFF;
+      }
+
+      /* Dark Mode Styles */
+      .dark .widget {
+        background: #333333;
+        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.12);
+      }
+
+      .dark .widget-header {
+        color: #ffffff;
+      }
+
+      .dark aside {
+        background: #444444 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+
+      .dark .sidebar-item {
+        color: #ffffff;
+      }
+
+      .dark .active-sidebar-item {
+        background-color: rgba(49, 143, 255, 0.15);
+        color: #318FFF;
+      }
+
+      /* Dark Mode Header Styles */
+      .dark header {
+        background: #444444 !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+      }
+
+      .dark header button,
+      .dark header i,
+      .dark header span,
+      .dark header h1 {
+        color: #ffffff !important;
+      }
+
+      .dark header [data-lucide="user"] {
+        color: #e2e2e2 !important;
+      }
+
+      .dark header button:hover i,
+      .dark header button:hover span {
+        color: #318FFF !important;
+      }
+
+      .dark header button:hover [data-lucide="user"] {
+        color: #318FFF !important;
+      }
+
+      /* Dark Mode Main Content */
+      .dark main {
+        background: #222222 !important;
+      }
+
+      .dark .text-3xl,
+      .dark .text-lg {
+        color: #ffffff !important;
+      }
+
+      .dark .text-gray-600,
+      .dark .text-gray-500 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      /* Dark Mode Chat Styles */
+      .dark .chat-bubble-ai {
+        background-color: #555555;
+        color: #ffffff;
+      }
+
+      /* Dark Mode Body and Container */
+      .dark body {
+        background-color: #222222 !important;
+      }
+
+      .dark .h-screen {
+        background-color: #222222 !important;
+      }
+
+      /* Dark Mode KPI Cards */
+      .dark .kpi-card {
+        background: #333333;
+        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.12);
+      }
+
+      .dark .kpi-card p {
+        color: #ffffff;
+      }
+
+      .dark .kpi-card .text-gray-500 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      /* Dark Mode Sensor Cards - 작업자 환경 관리 탭 */
+      .dark #kitchen-status-page #sensor-card-list .widget {
+        background: #444444 !important;
+      }
+
+      .dark #kitchen-status-page .widget .text-gray-800 {
+        color: #ffffff !important;
+      }
+
+      .dark #kitchen-status-page .widget .text-gray-600 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .dark #kitchen-status-page .widget .text-gray-500 {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .dark #kitchen-status-page .widget .border-gray-200 {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      /* Dark Mode Sensor Status Text */
+      .dark #kitchen-status-page .widget span.font-medium.capitalize {
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - 현장 관리자 정보 위젯 */
+      .dark #manager-info p {
+        color: #ffffff !important;
+      }
+
+      .dark #manager-info p strong {
+        color: #ffffff !important;
+      }
+
+      .dark #manager-info .widget-body p {
+        color: #ffffff !important;
+      }
+
+      .dark #manager-info .widget-body .text-gray-600 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .dark #manager-info .widget-body .text-gray-500 {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      /* Dark Mode - 최근 CCTV 이벤트 위젯 */
+      .dark #cctv-event-body .text-base.text-gray-800 {
+        color: #ffffff !important;
+      }
+
+      .dark #cctv-event-body .font-bold.text-base.text-gray-800 {
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - 주요 센서 현황 위젯 카드 */
+      .dark #dashboard-page .widget .grid > div {
+        background: #444444 !important;
+      }
+
+      .dark #dashboard-page .widget .grid > div p {
+        color: #ffffff !important;
+      }
+
+      .dark #dashboard-page .widget .grid > div .text-sm {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .dark #dashboard-page .widget .grid > div .text-gray-500 {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .dark #dashboard-page .widget .grid > div .text-gray-600 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      /* Dark Mode - AI 안전 리포트 탭 */
+      .dark #ai-report-page .text-gray-700 {
+        color: #ffffff !important;
+      }
+
+      .dark #ai-report-page #report-output-container {
+        background-color: #444444 !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .dark #ai-report-page .text-gray-500 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .dark #ai-report-page select {
+        background-color: #444444 !important;
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .dark #ai-report-page select option {
+        background-color: #444444 !important;
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - AI 리포트 콘텐츠 스타일 개선 */
+      .dark #report-content.prose h2,
+      .dark #report-content.prose h3,
+      .dark #report-content.prose h4 {
+        color: #ffffff !important;
+      }
+
+      .dark #report-content.prose p {
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+
+      .dark #report-content.prose ul li,
+      .dark #report-content.prose ol li {
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+
+      .dark #report-content.prose strong {
+        color: #ffffff !important;
+      }
+
+      .dark #report-content .widget {
+        background-color: #555555 !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .dark #report-content .widget .font-semibold {
+        color: #ffffff !important;
+      }
+
+      .dark #report-content .widget .text-gray-600 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .dark #report-content .text-sm {
+        color: rgba(255, 255, 255, 0.8) !important;
+      }
+
+      /* Dark Mode - 실시간 알림 현황 & AI 예지보전 알림 위젯 텍스트 색상 유지 */
+      .dark #local-alert-manager .text-red-700,
+      .dark #local-alert-manager .text-yellow-700,
+      .dark #local-alert-manager .text-green-700,
+      .dark #local-alert-manager .text-blue-700,
+      .dark #local-alert-manager .text-gray-600,
+      .dark #local-alert-manager .text-red-600,
+      .dark #local-alert-manager .text-yellow-600,
+      .dark #local-alert-manager .text-blue-600 {
+        color: inherit !important;
+      }
+
+      .dark #maintenance-schedule .text-red-700,
+      .dark #maintenance-schedule .text-yellow-700,
+      .dark #maintenance-schedule .text-green-700,
+      .dark #maintenance-schedule .text-blue-700,
+      .dark #maintenance-schedule .text-gray-600,
+      .dark #maintenance-schedule .text-red-600,
+      .dark #maintenance-schedule .text-yellow-600,
+      .dark #maintenance-schedule .text-blue-600 {
+        color: inherit !important;
+      }
+
+      /* Dark Mode - 알림 배경색이 있는 요소들의 텍스트 원래 색상 유지 */
+      .dark .bg-red-50,
+      .dark .bg-yellow-50,
+      .dark .bg-green-50,
+      .dark .bg-blue-50,
+      .dark .bg-red-100,
+      .dark .bg-yellow-100,
+      .dark .bg-green-100,
+      .dark .bg-blue-100 {
+        color: inherit !important;
+      }
+
+      .dark .bg-red-50 *,
+      .dark .bg-yellow-50 *,
+      .dark .bg-green-50 *,
+      .dark .bg-blue-50 *,
+      .dark .bg-red-100 *,
+      .dark .bg-yellow-100 *,
+      .dark .bg-green-100 *,
+      .dark .bg-blue-100 * {
+        color: inherit !important;
+      }
+
+      /* Dark Mode - Chart.js 범례 및 축 레이블 텍스트 색상 */
+      .dark canvas {
+        filter: invert(0);
+      }
+      
+      /* Chart.js 범례, 축 레이블, 툴팁 텍스트 다크모드 스타일 */
+      .dark .chartjs-render-monitor {
+        background-color: transparent !important;
+      }
+
+      /* Dark Mode - LLM 안전 매뉴얼 채팅 영역 */
+      .dark #chat-window {
+        background-color: #333333;
+      }
+
+      .dark #chat-window ~ .bg-gray-50 {
+        background-color: #444444 !important;
+        border-color: #555555;
+      }
+
+      .dark #chat-input {
+        background-color: #333333 !important;
+        border-color: #555555 !important;
+        color: #ffffff !important;
+      }
+
+      .dark #chat-input::placeholder {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .dark #chat-input:focus {
+        border-color: #3b82f6 !important;
+        background-color: #333333 !important;
+      }
+
+      /* Example question buttons */
+      .dark #example-questions button {
+        background-color: #555555 !important;
+        color: #ffffff !important;
+        border-color: #666666 !important;
+      }
+
+      .dark #example-questions button:hover {
+        background-color: #666666 !important;
+      }
+
+      /* Dark Mode - 산업안전 탭 이벤트 타임라인 및 연관 센서 상태 */
+      .dark #cctv-thumbnail-list {
+        background-color: #444444 !important;
+      }
+
+      /* Dark Mode - 이벤트 타임라인 시간 텍스트 */
+      .dark #cctv-thumbnail-list p {
+        color: #ffffff !important;
+      }
+
+      .dark #cctv-thumbnail-list .text-xs {
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - CCTV 썸네일 라운디드 처리 */
+      .dark #cctv-thumbnail-list .cctv-thumbnail {
+        border-radius: 8px !important;
+      }
+
+      .dark #fire-sensor-status-container {
+        background-color: #222 !important;
+        border-color: #444444 !important;
+      }
+
+      .dark #fire-sensor-status-container h3 {
+        color: #ffffff !important;
+        border-color: #555555 !important;
+      }
+
+      /* Dark Mode - 센서 위젯 스타일 */
+      .dark #fire-sensor-widgets .widget {
+        background-color: #444444 !important;
+        border: 1px solid #444444 !important;
+      }
+
+      .dark #fire-sensor-widgets .widget:hover {
+        background-color: #444444 !important;
+      }
+
+      .dark #fire-sensor-widgets .widget p {
+        color: #ffffff !important;
+      }
+
+      .dark #fire-sensor-widgets .widget .text-gray-500 {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .dark #fire-sensor-widgets .widget .font-semibold {
+        color: #ffffff !important;
+      }
+
+      .dark #fire-sensor-widgets .widget .text-xs {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      /* Dark Mode - 일반 위젯 hover 상태 */
+      .dark .widget.hover\\:bg-gray-50:hover,
+      .dark .widget.hover\\:bg-gray-100:hover {
+        background-color: #444444 !important;
+      }
+
+      /* Dark Mode - 산업안전 탭 추가 스타일 */
+      .dark .page-content h3.text-gray-700 {
+        color: #ffffff !important;
+      }
+
+      .dark .page-content h3.text-gray-600 {
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - CCTV 이벤트 상세 정보 텍스트 */
+      .dark #cctv-main-viewer-details {
+        border-color: #444444 !important;
+      }
+
+      .dark #cctv-main-viewer-details h4 {
+        color: #ffffff !important;
+      }
+
+      .dark #cctv-main-viewer-details p {
+        color: #ffffff !important;
+      }
+
+      .dark #cctv-main-viewer-details p strong {
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - CCTV 이벤트 상세 모든 텍스트 요소 */
+      .dark #cctv-main-viewer-details * {
+        color: #ffffff !important;
+      }
+      
+      /* Dark Mode - 상태 span의 색상 유지 (활성/비활성 구분) */
+      .dark #cctv-main-viewer-details .text-red-500 {
+        color: #ef4444 !important;
+      }
+      
+      .dark #cctv-main-viewer-details .text-gray-600 {
+        color: #9ca3af !important;
+      }
+
+      /* Dark Mode - 센서 디테일 페이지 센서 정보 위젯 */
+      .dark #sensor-info-body p {
+        color: #ffffff !important;
+      }
+
+      .dark #sensor-info-body p strong {
+        color: #ffffff !important;
+      }
+
+      .dark #sensor-info-body {
+        color: #ffffff !important;
+      }
+
+      /* Dark Mode - 장애 이력 테이블 */
+      .dark table {
+        background-color: #333333 !important;
+        border-color: #444444 !important;
+      }
+
+      .dark table th {
+        background-color: #444444 !important;
+        color: #ffffff !important;
+        border-color: #555555 !important;
+      }
+
+      .dark table td {
+        background-color: #333333 !important;
+        color: #ffffff !important;
+        border-color: #444444 !important;
+      }
+
+      .dark table tr {
+        border-color: #444444 !important;
+      }
+
+      .dark table tr:hover {
+        background-color: #3a3a3a !important;
+      }
+
+      /* Dark Mode - 센서 디테일 페이지 백버튼 */
+      .dark #back-to-kitchen-status-btn {
+        color: #60a5fa !important;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
@@ -359,6 +857,9 @@
           <div class="flex items-center gap-3">
             <button class="p-2 text-gray-500 hover:text-gray-700 transition-colors">
               <i data-lucide="bell" class="w-5 h-5 opacity-0"></i>
+            </button>
+            <button onclick="toggleDarkMode()" class="dark-mode-toggle" id="dark-mode-toggle" title="Toggle dark mode">
+              <i data-lucide="sun" class="w-6 h-6" id="theme-icon"></i>
             </button>
             <!-- Separator/Divider -->
             <div class="h-3 w-px bg-gray-300 dark:bg-gray-600"></div>
@@ -2292,7 +2793,29 @@
                 },
               ],
             },
-            options: { responsive: true, maintainAspectRatio: false },
+            options: { 
+              responsive: true, 
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
+                },
+                y: {
+                  ticks: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
+                }
+              }
+            },
           });
         }
 
@@ -2315,7 +2838,14 @@
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } },
+              plugins: { 
+                legend: { 
+                  position: 'bottom',
+                  labels: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
+                } 
+              },
             },
           });
         }
@@ -2360,11 +2890,31 @@
                   beginAtZero: false,
                   suggestedMin: 50,
                   suggestedMax: 110,
-                  title: { display: true, text: '온도 (°C)' },
+                  title: { 
+                    display: true, 
+                    text: '온도 (°C)',
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  },
+                  ticks: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
                 },
-                x: { display: false },
+                x: { 
+                  display: false,
+                  ticks: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
+                },
               },
-              plugins: { legend: { display: true, position: 'top' } },
+              plugins: { 
+                legend: { 
+                  display: true, 
+                  position: 'top',
+                  labels: {
+                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
+                  }
+                } 
+              },
             },
           });
         }
@@ -2797,10 +3347,86 @@
         }
       }
 
+      // --- Dark Mode Functions ---
+      function initializeDarkMode() {
+        const savedTheme = localStorage.getItem('dark');
+        const isDark = savedTheme ? JSON.parse(savedTheme) : false;
+        
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          updateThemeIcon('moon');
+        } else {
+          document.documentElement.classList.remove('dark');
+          updateThemeIcon('sun');
+        }
+      }
+
+      function updateChartColors() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#ffffff' : '#374151';
+        
+        // Update report charts
+        Object.values(reportCharts).forEach(chart => {
+          if (chart && chart.options) {
+            // Update legend colors
+            if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+              chart.options.plugins.legend.labels.color = textColor;
+            }
+            
+            // Update scale colors
+            if (chart.options.scales) {
+              if (chart.options.scales.x && chart.options.scales.x.ticks) {
+                chart.options.scales.x.ticks.color = textColor;
+              }
+              if (chart.options.scales.y) {
+                if (chart.options.scales.y.ticks) {
+                  chart.options.scales.y.ticks.color = textColor;
+                }
+                if (chart.options.scales.y.title) {
+                  chart.options.scales.y.title.color = textColor;
+                }
+              }
+            }
+            
+            chart.update();
+          }
+        });
+      }
+
+      function toggleDarkMode() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const newTheme = !isDark;
+        
+        localStorage.setItem('dark', JSON.stringify(newTheme));
+        
+        if (newTheme) {
+          document.documentElement.classList.add('dark');
+          updateThemeIcon('moon');
+        } else {
+          document.documentElement.classList.remove('dark');
+          updateThemeIcon('sun');
+        }
+        
+        // Update chart colors after theme change
+        updateChartColors();
+      }
+
+      function updateThemeIcon(iconType) {
+        const themeIcon = document.getElementById('theme-icon');
+        if (themeIcon) {
+          themeIcon.setAttribute('data-lucide', iconType);
+          // Refresh Lucide icons
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+        }
+      }
+
       // Global function to make it available to onclick handlers
       window.switchPage = switchPage;
       window.toggleSidebar = toggleSidebar;
       window.toggleCategory = toggleCategory;
+      window.toggleDarkMode = toggleDarkMode;
 
       // --- Responsive Setup ---
       function setupResponsive() {
@@ -2835,6 +3461,7 @@
 
       // --- App Start ---
       document.addEventListener('DOMContentLoaded', () => {
+        initializeDarkMode();
         initializeApp();
         setupResponsive();
       });
