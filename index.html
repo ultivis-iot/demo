@@ -7,6 +7,11 @@
     <title>Ultivis - Demo Collection</title>
     <link rel="icon" type="image/x-icon" href="./assets/favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
 
     <style>
       @font-face {
@@ -33,6 +38,20 @@
         --transition-normal: 0.3s ease-in-out;
       }
 
+      /* Dark Mode Variables */
+      .dark {
+        --color-primary: #318fff;
+        --color-primary-10: rgba(49, 143, 255, 0.15);
+        --color-grayscale-100: #ffffff;
+        --color-grayscale-200: #e5e5e5;
+        --color-grayscale-300: rgba(255, 255, 255, 0.7);
+        --color-grayscale-500: #999999;
+        --color-grayscale-700: rgba(255, 255, 255, 0.1);
+        --color-grayscale-800: #333333;
+        --color-grayscale-1000: #222222;
+        --shadow-card: 0px 1px 3px rgba(255, 255, 255, 0.12);
+      }
+
       body {
         font-family:
           'SUIT-Regular',
@@ -46,6 +65,12 @@
         -moz-osx-font-smoothing: grayscale;
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         min-height: 100vh;
+        transition: background 0.3s ease-in-out;
+      }
+
+      /* Dark Mode Body */
+      .dark body {
+        background: #222222;
       }
 
       .demo-card {
@@ -184,7 +209,6 @@
 
       .hero-subtitle {
         font-size: 1.25rem;
-        color: var(--color-grayscale-300);
         max-width: 800px;
         margin: 0 auto;
       }
@@ -297,20 +321,57 @@
   </head>
 
   <body class="p-6 md:p-8 lg:p-12">
-    <!-- Language Toggle Button -->
-    <div class="language-toggle">
-      <button class="language-toggle-btn" id="btn-en" onclick="switchLanguage('en')">
-        EN
-      </button>
-      <button class="language-toggle-btn active" id="btn-ko" onclick="switchLanguage('ko')">
-        한국어
-      </button>
-    </div>
+    <!-- Header Controls -->
+    <header class="mb-8 flex items-center justify-between">
+      <!-- Language & Dark Mode Toggle -->
+      <div class="language-toggle">
+        <button
+          onclick="toggleDarkMode()"
+          class="language-toggle-btn"
+          id="dark-mode-toggle"
+          title="Toggle dark mode"
+        >
+          <svg
+            id="theme-icon"
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        </button>
+        <button
+          class="language-toggle-btn"
+          id="btn-en"
+          onclick="switchLanguage('en')"
+        >
+          EN
+        </button>
+        <button
+          class="language-toggle-btn active"
+          id="btn-ko"
+          onclick="switchLanguage('ko')"
+        >
+          한국어
+        </button>
+      </div>
+
+      <!-- Right side (empty for future use) -->
+      <div></div>
+    </header>
 
     <div class="mx-auto max-w-6xl">
       <!-- Hero Section -->
       <div class="hero-section">
-        <h1 class="hero-title flex items-center justify-center">
+        <h1
+          class="hero-title flex items-center justify-center dark:bg-gradient-to-br dark:from-blue-400 dark:to-blue-600 dark:bg-clip-text dark:text-transparent"
+        >
           <img
             src="./assets/favicon.png"
             alt="Ultivis Logo"
@@ -319,12 +380,15 @@
           <span class="lang-en">Ultivis Demo Collection</span>
           <span class="lang-ko">얼티비스 데모 컬렉션</span>
         </h1>
-        <p class="hero-subtitle">
+        <p class="hero-subtitle text-gray-600 dark:!text-white">
           <span class="lang-en">
-            Explore various AI-powered dashboards and control systems. Experience diverse solutions from real-time monitoring to integrated control systems.
+            Explore various AI-powered dashboards and control systems.
+            Experience diverse solutions from real-time monitoring to integrated
+            control systems.
           </span>
           <span class="lang-ko">
-            다양한 AI 기반 대시보드와 관제 시스템의 데모를 확인해보세요. 실시간 모니터링부터 통합 관제까지 다양한 솔루션을 체험할 수 있습니다.
+            다양한 AI 기반 대시보드와 관제 시스템의 데모를 확인해보세요. 실시간
+            모니터링부터 통합 관제까지 다양한 솔루션을 체험할 수 있습니다.
           </span>
         </p>
       </div>
@@ -332,240 +396,366 @@
       <!-- Demo Cards Grid -->
       <div class="grid-container">
         <!-- Demo 1: Smart School Dashboard -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/01.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/01.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
+                <h3 class="demo-title text-gray-900 dark:text-white">
                   <span class="lang-en">Smart School Dashboard</span>
                   <span class="lang-ko">스마트 스쿨 대시보드</span>
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    Comprehensive smart school integrated dashboard for monitoring and managing overall facility status. View real-time sensor data, energy usage, security systems and more at a glance.
+                    Comprehensive smart school integrated dashboard for
+                    monitoring and managing overall facility status. View
+                    real-time sensor data, energy usage, security systems and
+                    more at a glance.
                   </span>
                   <span class="lang-ko">
-                    스마트 스쿨 통합 대시보드로 학교 시설의 전반적인 상태를 모니터링하고 관리할 수 있습니다. 실시간 센서 데이터, 에너지 사용량, 보안 시스템 등을 한눈에 확인하세요.
+                    스마트 스쿨 통합 대시보드로 학교 시설의 전반적인 상태를
+                    모니터링하고 관리할 수 있습니다. 실시간 센서 데이터, 에너지
+                    사용량, 보안 시스템 등을 한눈에 확인하세요.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">English</span>
-                <span class="text-gray-400 text-xs">Interactive Dashboard</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >English</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Interactive Dashboard</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 2: AI 펌프카 -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/02.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/02.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
-                  <span class="lang-en">AI Pump Truck Integrated Control Dashboard</span>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >AI Pump Truck Integrated Control Dashboard</span
+                  >
                   <span class="lang-ko">AI 펌프카 통합관제 대시보드</span>
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-based pump truck control system for integrated monitoring of real-time equipment status, location information, and work progress. Enables predictive analysis for proactive maintenance and efficient operation management.
+                    AI-based pump truck control system for integrated monitoring
+                    of real-time equipment status, location information, and
+                    work progress. Enables predictive analysis for proactive
+                    maintenance and efficient operation management.
                   </span>
                   <span class="lang-ko">
-                    AI 기반 펌프카 관제 시스템으로 장비의 실시간 상태, 위치 정보, 작업 현황을 통합 모니터링합니다. 예측 분석을 통한 사전 점검과 효율적인 운영 관리가 가능합니다.
+                    AI 기반 펌프카 관제 시스템으로 장비의 실시간 상태, 위치
+                    정보, 작업 현황을 통합 모니터링합니다. 예측 분석을 통한 사전
+                    점검과 효율적인 운영 관리가 가능합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">한국어</span>
-                <span class="text-gray-400 text-xs">Real-time Monitoring</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Real-time Monitoring</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 3: AI 유압 브레이커 -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/03.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/03.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
-                  <span class="lang-en">AI Hydraulic Breaker Integrated Control Dashboard</span>
-                  <span class="lang-ko">AI 유압브레이커 통합 관제 대시보드</span>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >AI Hydraulic Breaker Integrated Control Dashboard</span
+                  >
+                  <span class="lang-ko"
+                    >AI 유압브레이커 통합 관제 대시보드</span
+                  >
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-based integrated control system for hydraulic breaker equipment. Supports smart equipment operation including equipment status diagnosis, work efficiency analysis, and maintenance schedule management.
+                    AI-based integrated control system for hydraulic breaker
+                    equipment. Supports smart equipment operation including
+                    equipment status diagnosis, work efficiency analysis, and
+                    maintenance schedule management.
                   </span>
                   <span class="lang-ko">
-                    유압 브레이커 장비의 AI 기반 통합 관제 시스템입니다. 장비 상태 진단, 작업 효율성 분석, 유지보수 일정 관리 등 스마트한 장비 운영을 지원합니다.
+                    유압 브레이커 장비의 AI 기반 통합 관제 시스템입니다. 장비
+                    상태 진단, 작업 효율성 분석, 유지보수 일정 관리 등 스마트한
+                    장비 운영을 지원합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">한국어</span>
-                <span class="text-gray-400 text-xs">AI Analytics</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >AI Analytics</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 4: GASTRON 5대 가스 관제 -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/04.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/04.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
-                  <span class="lang-en">5-Gas Real-Time Integrated Control Dashboard</span>
-                  <span class="lang-ko">5대 가스 실시간 통합 관제 대시보드</span>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >5-Gas Real-Time Integrated Control Dashboard</span
+                  >
+                  <span class="lang-ko"
+                    >5대 가스 실시간 통합 관제 대시보드</span
+                  >
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-based automatic hazard detection system for real-time monitoring of 5 gases (combustible gas, carbon monoxide, hydrogen sulfide, oxygen, ammonia). Provides sensor status, alarm management, and AI analysis report functions.
+                    AI-based automatic hazard detection system for real-time
+                    monitoring of 5 gases (combustible gas, carbon monoxide,
+                    hydrogen sulfide, oxygen, ammonia). Provides sensor status,
+                    alarm management, and AI analysis report functions.
                   </span>
                   <span class="lang-ko">
-                    AI 기반 자동 위험 감지 시스템으로 5대 가스(가연성가스, 일산화탄소, 황화수소, 산소, 암모니아)를 실시간 모니터링합니다. 센서 상태, 알람 관리, AI 분석 리포트 기능을 제공합니다.
+                    AI 기반 자동 위험 감지 시스템으로 5대 가스(가연성가스,
+                    일산화탄소, 황화수소, 산소, 암모니아)를 실시간
+                    모니터링합니다. 센서 상태, 알람 관리, AI 분석 리포트 기능을
+                    제공합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">한국어</span>
-                <span class="text-gray-400 text-xs">Gas Monitoring</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Gas Monitoring</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 5: 스마트 재활용 분리수거 대시보드 -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/05.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/05.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
-                  <span class="lang-en">Ulsan Jung-gu Smart Recycling Collection Dashboard</span>
-                  <span class="lang-ko">울산 중구 스마트재활용 분리수거 대시보드</span>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >Ulsan Jung-gu Smart Recycling Collection Dashboard</span
+                  >
+                  <span class="lang-ko"
+                    >울산 중구 스마트재활용 분리수거 대시보드</span
+                  >
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-based smart waste collection management system for real-time monitoring of recycling collection machines in Ulsan Jung-gu. Features include collection status tracking, fill level monitoring, predictive maintenance, and comprehensive reporting.
+                    AI-based smart waste collection management system for
+                    real-time monitoring of recycling collection machines in
+                    Ulsan Jung-gu. Features include collection status tracking,
+                    fill level monitoring, predictive maintenance, and
+                    comprehensive reporting.
                   </span>
                   <span class="lang-ko">
-                    울산 중구 지역의 재활용 분리수거함을 실시간 모니터링하는 AI 기반 스마트 수거 관리 시스템입니다. 수거 현황 추적, 충전도 모니터링, 예측 정비, 종합 리포트 기능을 제공합니다.
+                    울산 중구 지역의 재활용 분리수거함을 실시간 모니터링하는 AI
+                    기반 스마트 수거 관리 시스템입니다. 수거 현황 추적, 충전도
+                    모니터링, 예측 정비, 종합 리포트 기능을 제공합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">한국어</span>
-                <span class="text-gray-400 text-xs">Waste Management</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Waste Management</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 6: 재생에너지 통합관제 -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/06.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/06.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
-                  <span class="lang-en">Renewable Energy Integrated Control Dashboard</span>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >Renewable Energy Integrated Control Dashboard</span
+                  >
                   <span class="lang-ko">재생에너지 통합관제 대시보드</span>
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-based renewable energy integrated control system for monitoring solar and wind power assets in Busan region. Features include real-time power generation monitoring, predictive analytics, AI-powered maintenance, and comprehensive energy efficiency analysis.
+                    AI-based renewable energy integrated control system for
+                    monitoring solar and wind power assets in Busan region.
+                    Features include real-time power generation monitoring,
+                    predictive analytics, AI-powered maintenance, and
+                    comprehensive energy efficiency analysis.
                   </span>
                   <span class="lang-ko">
-                    부산 지역의 태양광 및 풍력 발전 자산을 모니터링하는 AI 기반 재생에너지 통합관제 시스템입니다. 실시간 발전량 모니터링, 예측 분석, AI 예지보전, 종합적인 에너지 효율 분석 기능을 제공합니다.
+                    부산 지역의 태양광 및 풍력 발전 자산을 모니터링하는 AI 기반
+                    재생에너지 통합관제 시스템입니다. 실시간 발전량 모니터링,
+                    예측 분석, AI 예지보전, 종합적인 에너지 효율 분석 기능을
+                    제공합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">한국어</span>
-                <span class="text-gray-400 text-xs">Energy Management</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Energy Management</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 7: MBG 스마트 키친 대시보드 -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/07.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/07.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
+                <h3 class="demo-title text-gray-900 dark:text-white">
                   <span class="lang-en">MBG Smart Kitchen Dashboard (PoC)</span>
                   <span class="lang-ko">MBG 스마트 키친 대시보드 (PoC)</span>
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-powered smart kitchen management system for commercial kitchen environments. Features real-time sensor monitoring (gas, temperature, humidity), CCTV surveillance with PPE compliance detection, emergency response systems, and comprehensive safety reporting with Ultivis platform integration.
+                    AI-powered smart kitchen management system for commercial
+                    kitchen environments. Features real-time sensor monitoring
+                    (gas, temperature, humidity), CCTV surveillance with PPE
+                    compliance detection, emergency response systems, and
+                    comprehensive safety reporting with Ultivis platform
+                    integration.
                   </span>
                   <span class="lang-ko">
-                    상업용 주방 환경을 위한 AI 기반 스마트 키친 관리 시스템입니다. 실시간 센서 모니터링(가스, 온도, 습도), PPE 착용 감지 기능이 있는 CCTV 감시, 응급 대응 시스템, Ultivis 플랫폼과 통합된 종합 안전 보고 기능을 제공합니다.
+                    상업용 주방 환경을 위한 AI 기반 스마트 키친 관리
+                    시스템입니다. 실시간 센서 모니터링(가스, 온도, 습도), PPE
+                    착용 감지 기능이 있는 CCTV 감시, 응급 대응 시스템, Ultivis
+                    플랫폼과 통합된 종합 안전 보고 기능을 제공합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">English</span>
-                <span class="text-gray-400 text-xs">Kitchen Safety</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >English</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Kitchen Safety</span
+                >
               </div>
             </div>
           </a>
         </div>
 
         <!-- Demo 8: Monnit-Ultivis AIoT Safety Dashboard -->
-        <div class="demo-card">
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
           <a href="./pages/08.html" class="demo-link">
-            <div class="demo-preview-container">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
               <iframe src="./pages/08.html" class="demo-preview"></iframe>
               <div class="demo-preview-overlay"></div>
             </div>
             <div class="demo-card-content">
               <div>
-                <h3 class="demo-title">
-                  <span class="lang-en">Monnit-Ultivis AIoT Safety Dashboard</span>
-                  <span class="lang-ko">Monnit-Ultivis AIoT 산업안전 대시보드</span>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >Monnit-Ultivis AIoT Safety Dashboard</span
+                  >
+                  <span class="lang-ko"
+                    >Monnit-Ultivis AIoT 산업안전 대시보드</span
+                  >
                 </h3>
-                <p class="demo-description">
+                <p class="demo-description text-gray-600 dark:text-gray-300">
                   <span class="lang-en">
-                    AI-powered industrial safety monitoring system with Monnit sensor integration. Features real-time environmental monitoring, AI-powered vision analytics for PPE detection and fall detection, 3D digital twin visualization, and comprehensive safety incident management with predictive analytics.
+                    AI-powered industrial safety monitoring system with Monnit
+                    sensor integration. Features real-time environmental
+                    monitoring, AI-powered vision analytics for PPE detection
+                    and fall detection, 3D digital twin visualization, and
+                    comprehensive safety incident management with predictive
+                    analytics.
                   </span>
                   <span class="lang-ko">
-                    Monnit 센서와 통합된 AI 기반 산업안전 모니터링 시스템입니다. 실시간 환경 모니터링, PPE 착용 감지 및 쓰러짐 감지를 위한 AI 비전 분석, 3D 디지털 트윈 시각화, 예측 분석을 통한 종합적인 안전 사고 관리 기능을 제공합니다.
+                    Monnit 센서와 통합된 AI 기반 산업안전 모니터링 시스템입니다.
+                    실시간 환경 모니터링, PPE 착용 감지 및 쓰러짐 감지를 위한 AI
+                    비전 분석, 3D 디지털 트윈 시각화, 예측 분석을 통한 종합적인
+                    안전 사고 관리 기능을 제공합니다.
                   </span>
                 </p>
               </div>
               <div class="flex items-center justify-between">
-                <span class="demo-badge">한국어</span>
-                <span class="text-gray-400 text-xs">Industrial Safety</span>
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Industrial Safety</span
+                >
               </div>
             </div>
           </a>
@@ -573,22 +763,19 @@
       </div>
 
       <!-- Footer Note -->
-      <div class="footer-note">
+      <div class="footer-note text-gray-600 dark:bg-[#333] dark:text-white">
         <p>
           <span class="lang-en">
-            💡 Each demo uses sample data that simulates real operating environments.
+            💡 Each demo uses sample data that simulates real operating
+            environments.
           </span>
           <span class="lang-ko">
             💡 각 데모는 실제 운영 환경을 시뮬레이션한 샘플 데이터를 사용합니다.
           </span>
         </p>
-        <p class="mt-2 text-xs">
-          <span class="lang-en">
-            More demos will be added soon.
-          </span>
-          <span class="lang-ko">
-            더 많은 데모가 곧 추가될 예정입니다.
-          </span>
+        <p class="text-gray-500 mt-2 text-xs dark:text-white">
+          <span class="lang-en"> More demos will be added soon. </span>
+          <span class="lang-ko"> 더 많은 데모가 곧 추가될 예정입니다. </span>
         </p>
       </div>
     </div>
@@ -599,7 +786,7 @@
         const body = document.body;
         const btnEn = document.getElementById('btn-en');
         const btnKo = document.getElementById('btn-ko');
-        
+
         if (lang === 'en') {
           body.classList.add('english-mode');
           btnEn.classList.add('active');
@@ -612,12 +799,56 @@
           localStorage.setItem('language', 'ko');
         }
       }
-      
+
       // Initialize language from localStorage or default to Korean
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         const savedLang = localStorage.getItem('language') || 'ko';
         switchLanguage(savedLang);
+        initializeDarkMode();
       });
+
+      // Dark Mode functionality
+      function initializeDarkMode() {
+        const savedTheme = localStorage.getItem('dark');
+        const isDark = savedTheme ? JSON.parse(savedTheme) : false;
+
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          updateThemeIcon('moon');
+        } else {
+          document.documentElement.classList.remove('dark');
+          updateThemeIcon('sun');
+        }
+      }
+
+      function toggleDarkMode() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const newTheme = !isDark;
+
+        localStorage.setItem('dark', JSON.stringify(newTheme));
+
+        if (newTheme) {
+          document.documentElement.classList.add('dark');
+          updateThemeIcon('moon');
+        } else {
+          document.documentElement.classList.remove('dark');
+          updateThemeIcon('sun');
+        }
+      }
+
+      function updateThemeIcon(iconType) {
+        const themeIcon = document.getElementById('theme-icon');
+        if (themeIcon) {
+          const sunPath =
+            'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
+          const moonPath =
+            'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z';
+
+          themeIcon
+            .querySelector('path')
+            .setAttribute('d', iconType === 'sun' ? sunPath : moonPath);
+        }
+      }
     </script>
   </body>
 </html>
