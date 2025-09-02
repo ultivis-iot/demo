@@ -15,3 +15,4 @@ Ultivis의 AI 기반 대시보드와 관제 시스템 데모 컬렉션입니다.
 - ♻️ [울산 중구 스마트 재활용 분리수거 대시보드 (05)](https://ultivis-iot.github.io/demo/pages/05.html) - AI 기반 스마트 수거 관리 시스템
 - ⚡ [재생에너지 통합관제 서비스 (06)](https://ultivis-iot.github.io/demo/pages/06.html) - 재생에너지 통합 모니터링 대시보드
 - 🍽️ [MBG Smart Kitchen Dashboard (07)](https://ultivis-iot.github.io/demo/pages/07.html) - AI 기반 스마트 주방 관제 시스템
+- 🏭 [산업안전 통합 대시보드 (08)](https://ultivis-iot.github.io/demo/pages/08.html) - AI 기반 산업안전 관제 및 CCTV 모니터링 시스템
