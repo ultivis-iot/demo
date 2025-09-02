@@ -834,6 +834,19 @@
       .dark #back-to-kitchen-status-btn {
         color: #60a5fa !important;
       }
+
+      /* Dark Mode - 센서 성능 지표 */
+      .dark #sensor-metrics-body .bg-gray-50 {
+        background-color: #444444 !important;
+      }
+
+      .dark #sensor-metrics-body p {
+        color: #ffffff !important;
+      }
+
+      .dark #sensor-metrics-body .text-gray-500 {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
@@ -1721,9 +1734,9 @@
         correctiveActionSelect: document.getElementById('corrective-action'),
         actionNotes: document.getElementById('action-notes'),
         sensorInfoBody: document.getElementById('sensor-info-body'),
+        sensorMetricsBody: document.getElementById('sensor-metrics-body'),
         sensorDatasheetBody: document.getElementById('sensor-datasheet-body'),
         sensorPhotoBody: document.getElementById('sensor-photo-body'),
-        sensorMetricsBody: document.getElementById('sensor-metrics-body'),
         sensorLogBody: document.getElementById('sensor-log-body'),
         mainNav: document.getElementById('main-nav'),
         maintenanceSchedule: document.getElementById('maintenance-schedule'),
@@ -2493,6 +2506,27 @@
         switchPage('sensor-detail-page');
         elements.headerTitle.textContent = `센서 상세정보: ${details.name}`;
         elements.sensorInfoBody.innerHTML = `<p><strong>센서 ID:</strong> ${details.id}</p><p><strong>유형:</strong> ${details.name}</p><p><strong>설치 위치:</strong> ${details.location}</p><p><strong>배터리 잔량:</strong> 87%</p><p><strong>신호 강도:</strong> -75 dBm (Good)</p><p><strong>최근 교정일:</strong> 2025-06-01</p>`;
+
+        // 성능 지표 데이터 생성 (09.html 스타일)
+        const uptime = (Math.random() * (100 - 99.5) + 99.5).toFixed(2);
+        const alerts = Math.floor(Math.random() * 5);
+        const avgValue = (details.value * (Math.random() * 0.2 + 0.9)).toFixed(1);
+
+        elements.sensorMetricsBody.innerHTML = `
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">가동률</p>
+                <p class="text-xl font-bold text-green-600">${uptime}%</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">월간 알림 횟수</p>
+                <p class="text-xl font-bold text-orange-600">${alerts}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">평균 측정값</p>
+                <p class="text-xl font-bold text-blue-600">${avgValue} ${details.unit}</p>
+            </div>
+        `;
+
         elements.sensorDatasheetBody.innerHTML = `<a href="#" class="text-blue-600 hover:underline">Monnit_Sensor_Datasheet.pdf <i class="fas fa-download ml-1"></i></a>`;
         elements.sensorPhotoBody.innerHTML = `<img src="${details.photo}" alt="Sensor photo" class="max-w-full h-auto rounded-md shadow-md">`;
         const mockLog = [
