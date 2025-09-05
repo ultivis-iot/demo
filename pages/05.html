@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>울산 중구 스마트 재활용 분리수거 대시보드</title>
+    <title>스마트 재활용 분리수거 대시보드</title>
     <link rel="icon" type="image/x-icon" href="../assets/favicon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="./custom-styles.css" rel="stylesheet" />
@@ -64,18 +64,18 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
       }
-      
+
       /* Leaflet 지도 z-index 조정 */
       .leaflet-pane,
       .leaflet-map-pane,
       .leaflet-control-container {
         z-index: 1 !important;
       }
-      
+
       .leaflet-popup-pane {
         z-index: 700 !important;
       }
-      
+
       .leaflet-tooltip-pane {
         z-index: 650 !important;
       }
@@ -316,21 +316,22 @@
           margin: 15mm !important;
           size: A4 !important;
         }
-        
+
         /* 모든 요소 숨기기 */
         * {
           visibility: hidden !important;
           margin: 0 !important;
           padding: 0 !important;
         }
-        
+
         /* HTML과 BODY 초기화 */
-        html, body {
+        html,
+        body {
           height: auto !important;
           overflow: visible !important;
           background: white !important;
         }
-        
+
         /* 보고서 모달과 내용만 표시 */
         #report-modal,
         #report-modal *,
@@ -340,7 +341,7 @@
         #report-modal-body * {
           visibility: visible !important;
         }
-        
+
         /* 모달을 최상위로 직접 배치 */
         #report-modal {
           position: absolute !important;
@@ -353,7 +354,7 @@
           z-index: 1 !important;
           display: block !important;
         }
-        
+
         #report-modal > div {
           position: static !important;
           margin: 0 !important;
@@ -366,7 +367,7 @@
           background: white !important;
           display: block !important;
         }
-        
+
         /* 헤더와 불필요한 요소들 숨기기 */
         #close-report-modal-btn,
         #report-download-btn,
@@ -375,7 +376,7 @@
           display: none !important;
           visibility: hidden !important;
         }
-        
+
         /* 제목 스타일 */
         #report-modal-title {
           font-size: 20px !important;
@@ -386,7 +387,7 @@
           text-align: center !important;
           display: block !important;
         }
-        
+
         /* 본문 내용 스타일 */
         #report-modal-body {
           color: #333 !important;
@@ -399,7 +400,7 @@
           max-height: none !important;
           display: block !important;
         }
-        
+
         #report-modal-body h3 {
           color: #000 !important;
           font-size: 16px !important;
@@ -408,18 +409,18 @@
           padding: 0 !important;
           page-break-after: avoid !important;
         }
-        
+
         #report-modal-body h3:first-child {
           margin-top: 0 !important;
         }
-        
+
         #report-modal-body table {
           width: 100% !important;
           border-collapse: collapse !important;
           margin: 10px 0 !important;
           page-break-inside: avoid !important;
         }
-        
+
         #report-modal-body th,
         #report-modal-body td {
           border: 1px solid #333 !important;
@@ -428,12 +429,12 @@
           font-size: 11px !important;
           line-height: 1.3 !important;
         }
-        
+
         #report-modal-body th {
           background-color: #f5f5f5 !important;
           font-weight: bold !important;
         }
-        
+
         #report-modal-body .tag {
           display: inline-block !important;
           padding: 1px 4px !important;
@@ -444,18 +445,18 @@
           background-color: #f8f8f8 !important;
           color: #333 !important;
         }
-        
+
         #report-modal-body ul,
         #report-modal-body ol {
           margin: 8px 0 !important;
           padding-left: 15px !important;
         }
-        
+
         #report-modal-body li {
           margin: 3px 0 !important;
           line-height: 1.4 !important;
         }
-        
+
         #report-modal-body p {
           margin: 5px 0 !important;
           line-height: 1.4 !important;
@@ -692,8 +693,7 @@
                     스마트 재활용 분리수거 통합관제 대시보드
                   </h2>
                   <p class="text-gray-500 text-sm">
-                    울산광역시 중구 스마트 재활용 분리수거 시스템을 통합
-                    관리합니다.
+                    스마트 재활용 분리수거 시스템을 통합 관리합니다.
                   </p>
                 </div>
                 <!-- 보고서 생성 버튼 -->
@@ -1008,10 +1008,13 @@
     >
       <div class="mx-4 w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl">
         <div class="mb-4 flex items-center justify-between border-b pb-4">
-          <h3 id="report-modal-title" class="text-2xl font-bold text-gray-800"></h3>
+          <h3
+            id="report-modal-title"
+            class="text-gray-800 text-2xl font-bold"
+          ></h3>
           <button
             id="close-report-modal-btn"
-            class="text-4xl text-gray-400 hover:text-gray-600"
+            class="text-gray-400 hover:text-gray-600 text-4xl"
           >
             &times;
           </button>
@@ -1019,12 +1022,12 @@
         <div class="flex flex-grow flex-col">
           <div
             id="report-modal-body"
-            class="max-h-[70vh] max-w-none overflow-y-auto pr-4 text-gray-700"
+            class="text-gray-700 max-h-[70vh] max-w-none overflow-y-auto pr-4"
           ></div>
           <div class="mt-4 flex justify-end border-t pt-4">
             <button
               id="report-download-btn"
-              class="rounded-lg bg-gray-800 px-4 py-2 font-bold text-white transition-colors hover:bg-gray-700"
+              class="bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-2 font-bold text-white transition-colors"
             >
               다운로드
             </button>
@@ -1112,8 +1115,8 @@
         };
         for (let i = 0; i < TOTAL_MACHINES; i++) {
           machines.push({
-            id: `ULS-JUNGGU-${String(i + 1).padStart(3, '0')}`,
-            location: `울산 중구 ${i + 1}번 수거기`,
+            id: `${String(i + 1).padStart(3, '0')}`,
+            location: `${i + 1}번 수거기`,
             status: '정상',
             fillLevel: Math.random() * 80,
             collections: {
@@ -1211,7 +1214,7 @@
         const mapElement = document.getElementById('map-container');
         if (!mapElement) return;
 
-        // 울산 중구 중심 좌표
+        // 지도 중심 좌표
         window.mapInstance = L.map('map-container').setView(
           [35.558, 129.319],
           14
@@ -1628,17 +1631,20 @@
           }
         });
       }
-      
+
       // 보고서 다운로드 (PDF 인쇄) 이벤트
       if (elements.reportDownloadBtn) {
-        elements.reportDownloadBtn.addEventListener('click', function() {
+        elements.reportDownloadBtn.addEventListener('click', function () {
           try {
             // 인쇄 전에 모달이 열려있는지 확인
-            if (elements.reportModal && elements.reportModal.classList.contains('hidden')) {
+            if (
+              elements.reportModal &&
+              elements.reportModal.classList.contains('hidden')
+            ) {
               alert('보고서를 먼저 생성해주세요.');
               return;
             }
-            
+
             // 인쇄 실행
             window.print();
           } catch (error) {
