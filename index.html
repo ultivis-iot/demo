@@ -1,5 +1,5 @@
 <!-- index.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -9,14 +9,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
+        darkMode: "class",
       };
     </script>
 
     <style>
       @font-face {
-        font-family: 'SUIT-Regular';
-        src: url('../SUIT-Regular.woff2') format('woff2');
+        font-family: "SUIT-Regular";
+        src: url("../SUIT-Regular.woff2") format("woff2");
         font-weight: 400;
         font-style: normal;
         font-display: swap;
@@ -53,13 +53,8 @@
       }
 
       body {
-        font-family:
-          'SUIT-Regular',
-          -apple-system,
-          BlinkMacSystemFont,
-          'Segoe UI',
-          Roboto,
-          sans-serif;
+        font-family: "SUIT-Regular", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, sans-serif;
         font-weight: 400;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -595,9 +590,9 @@
                   <span class="lang-en">
                     AI-based smart waste collection management system for
                     real-time monitoring of recycling collection machines.
-                    Features include collection status tracking,
-                    fill level monitoring, predictive maintenance, and
-                    comprehensive reporting.
+                    Features include collection status tracking, fill level
+                    monitoring, predictive maintenance, and comprehensive
+                    reporting.
                   </span>
                   <span class="lang-ko">
                     특정 지역의 재활용 분리수거함을 실시간 모니터링하는 AI 기반
@@ -758,6 +753,50 @@
             </div>
           </a>
         </div>
+
+        <!-- Demo 9: AI 영상 분석 통합 대시보드 -->
+        <div
+          class="demo-card dark:shadow-gray-900/20 border-gray-200 dark:border-gray-700 border bg-white shadow-lg dark:bg-[#333]"
+        >
+          <a href="./pages/09.html" class="demo-link">
+            <div class="demo-preview-container bg-gray-50 dark:bg-gray-900">
+              <iframe src="./pages/09.html" class="demo-preview"></iframe>
+              <div class="demo-preview-overlay"></div>
+            </div>
+            <div class="demo-card-content">
+              <div>
+                <h3 class="demo-title text-gray-900 dark:text-white">
+                  <span class="lang-en"
+                    >AI Video Analysis Integrated Dashboard</span
+                  >
+                  <span class="lang-ko">AI 영상 분석 통합 대시보드</span>
+                </h3>
+                <p class="demo-description text-gray-600 dark:text-gray-300">
+                  <span class="lang-en">
+                    AI video analysis dashboard. Features multiple analysis
+                    modules including PPE detection, fall detection, virtual
+                    fence monitoring, crowd analysis, vehicle classification,
+                    VLM natural language queries, and AI reportingsupport.
+                  </span>
+                  <span class="lang-ko">
+                    AI 영상 분석 대시보드입니다. PPE 착용 감지, 쓰러짐 감지,
+                    가상 펜스 모니터링, 군중 분석, 차량 분류, VLM 자연어 질의,
+                    AI 리포팅 등 다양한 분석 모듈을 지원합니다.
+                  </span>
+                </p>
+              </div>
+              <div class="flex items-center justify-between">
+                <span
+                  class="demo-badge bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                  >한국어</span
+                >
+                <span class="text-gray-400 dark:text-gray-500 text-xs"
+                  >Video Analytics</span
+                >
+              </div>
+            </div>
+          </a>
+        </div>
       </div>
 
       <!-- Footer Note -->
@@ -782,69 +821,69 @@
       // Language toggle functionality
       function switchLanguage(lang) {
         const body = document.body;
-        const btnEn = document.getElementById('btn-en');
-        const btnKo = document.getElementById('btn-ko');
+        const btnEn = document.getElementById("btn-en");
+        const btnKo = document.getElementById("btn-ko");
 
-        if (lang === 'en') {
-          body.classList.add('english-mode');
-          btnEn.classList.add('active');
-          btnKo.classList.remove('active');
-          localStorage.setItem('language', 'en');
+        if (lang === "en") {
+          body.classList.add("english-mode");
+          btnEn.classList.add("active");
+          btnKo.classList.remove("active");
+          localStorage.setItem("language", "en");
         } else {
-          body.classList.remove('english-mode');
-          btnKo.classList.add('active');
-          btnEn.classList.remove('active');
-          localStorage.setItem('language', 'ko');
+          body.classList.remove("english-mode");
+          btnKo.classList.add("active");
+          btnEn.classList.remove("active");
+          localStorage.setItem("language", "ko");
         }
       }
 
       // Initialize language from localStorage or default to Korean
-      document.addEventListener('DOMContentLoaded', function () {
-        const savedLang = localStorage.getItem('language') || 'ko';
+      document.addEventListener("DOMContentLoaded", function () {
+        const savedLang = localStorage.getItem("language") || "ko";
         switchLanguage(savedLang);
         initializeDarkMode();
       });
 
       // Dark Mode functionality
       function initializeDarkMode() {
-        const savedTheme = localStorage.getItem('dark');
+        const savedTheme = localStorage.getItem("dark");
         const isDark = savedTheme ? JSON.parse(savedTheme) : false;
 
         if (isDark) {
-          document.documentElement.classList.add('dark');
-          updateThemeIcon('moon');
+          document.documentElement.classList.add("dark");
+          updateThemeIcon("moon");
         } else {
-          document.documentElement.classList.remove('dark');
-          updateThemeIcon('sun');
+          document.documentElement.classList.remove("dark");
+          updateThemeIcon("sun");
         }
       }
 
       function toggleDarkMode() {
-        const isDark = document.documentElement.classList.contains('dark');
+        const isDark = document.documentElement.classList.contains("dark");
         const newTheme = !isDark;
 
-        localStorage.setItem('dark', JSON.stringify(newTheme));
+        localStorage.setItem("dark", JSON.stringify(newTheme));
 
         if (newTheme) {
-          document.documentElement.classList.add('dark');
-          updateThemeIcon('moon');
+          document.documentElement.classList.add("dark");
+          updateThemeIcon("moon");
         } else {
-          document.documentElement.classList.remove('dark');
-          updateThemeIcon('sun');
+          document.documentElement.classList.remove("dark");
+          updateThemeIcon("sun");
         }
       }
 
       function updateThemeIcon(iconType) {
-        const themeIcon = document.getElementById('theme-icon');
+        const themeIcon = document.getElementById("theme-icon");
         if (themeIcon) {
           const sunPath =
-            'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
+            "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z";
           const moonPath =
-            'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z';
+            "M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z";
 
           themeIcon
-            .querySelector('path')
-            .setAttribute('d', iconType === 'sun' ? sunPath : moonPath);
+            .querySelector("path")
+            .setAttribute("d", iconType === "sun" ? sunPath : moonPath);
         }
       }
     </script>
